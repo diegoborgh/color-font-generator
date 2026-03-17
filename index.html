@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aesthetic Generator — Color Palettes &amp; Font Pairings</title>
+  <meta name="description" content="Generate cohesive color palettes and font pairings with one click. Export as CSS variables, Tailwind config, or JSON." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="app-brand">
+        <h1 class="app-title">Aesthetic<br />Generator</h1>
+        <p class="app-subtitle">Color palettes &amp; font pairings for your next project</p>
+      </div>
+      <button class="btn-generate" id="generateBtn" aria-label="Generate new aesthetic">
+        <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+          <path d="M21 3v5h-5"/>
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+          <path d="M8 16H3v5"/>
+        </svg>
+        Generate
+      </button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <!-- Generator Grid: Left (palette+fonts+a11y) + Right (preview) -->
+    <div class="generator-grid">
+
+      <!-- LEFT COLUMN -->
+      <div class="generator-left">
+
+        <!-- Color Palette -->
+        <section class="section-card" aria-label="Color palette">
+          <div class="section-header">
+            <h2 class="section-title">Color Palette</h2>
+            <span class="harmony-badge" id="harmonyBadge">—</span>
+          </div>
+          <div class="palette-grid" id="paletteGrid">
+            <!-- Swatches injected by JS -->
+          </div>
+          <div class="palette-hex-row" id="paletteHexRow">
+            <!-- Hex values injected by JS -->
+          </div>
+        </section>
+
+        <!-- Font Pairing -->
+        <section class="section-card" aria-label="Font pairing">
+          <div class="section-header">
+            <h2 class="section-title">Font Pairing</h2>
+            <span class="pair-category" id="pairCategory">—</span>
+          </div>
+          <div class="font-pairs" id="fontPairs">
+
+            <!-- Heading Font -->
+            <div class="font-item" id="fontItemHeading">
+              <div class="font-item-meta">
+                <button class="lock-btn" data-lock="heading" aria-label="Lock heading font" aria-pressed="false">
+                  <svg class="lock-icon unlock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                  </svg>
+                  <svg class="lock-icon locked-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </button>
+                <div class="font-info">
+                  <span class="font-role">Heading</span>
+                  <span class="font-name" id="headingFontName">—</span>
+                </div>
+              </div>
+              <div class="font-preview-wrap">
+                <p class="font-preview font-preview--heading" id="headingPreview">The Quick Brown Fox Jumps</p>
+              </div>
+            </div>
+
+            <div class="font-divider" aria-hidden="true"></div>
+
+            <!-- Body Font -->
+            <div class="font-item" id="fontItemBody">
+              <div class="font-item-meta">
+                <button class="lock-btn" data-lock="body" aria-label="Lock body font" aria-pressed="false">
+                  <svg class="lock-icon unlock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                  </svg>
+                  <svg class="lock-icon locked-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </button>
+                <div class="font-info">
+                  <span class="font-role">Body</span>
+                  <span class="font-name" id="bodyFontName">—</span>
+                </div>
+              </div>
+              <div class="font-preview-wrap">
+                <p class="font-preview font-preview--body" id="bodyPreview">Pack my box with five dozen liquor jugs. The wizard quickly jinxed the gnomes before they vaporized into thin air.</p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Accessibility Score -->
+        <section class="section-card a11y-card" aria-label="Accessibility contrast check">
+          <div class="section-header">
+            <h2 class="section-title">Accessibility</h2>
+          </div>
+          <div class="a11y-content">
+            <div class="contrast-visual">
+              <div class="contrast-swatches">
+                <div class="contrast-swatch contrast-swatch--bg" id="contrastBgSwatch" aria-label="Background color"></div>
+                <div class="contrast-swatch contrast-swatch--text" id="contrastTextSwatch" aria-label="Text color"></div>
+              </div>
+              <div class="contrast-score">
+                <span class="contrast-ratio" id="contrastRatio">—</span>
+                <span class="contrast-ratio-label">:1 ratio</span>
+              </div>
+            </div>
+            <div class="wcag-badges" id="wcagBadges">
+              <span class="wcag-badge" id="badgeAA" data-level="AA">AA</span>
+              <span class="wcag-badge" id="badgeAAA" data-level="AAA">AAA</span>
+              <span class="wcag-badge" id="badgeLarge" data-level="AA Large">AA Large</span>
+            </div>
+            <p class="a11y-note">Text color against Background — WCAG 2.1</p>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Live Preview -->
+      <div class="generator-right">
+        <section class="section-card preview-wrapper" aria-label="Live preview">
+          <div class="section-header">
+            <h2 class="section-title">Live Preview</h2>
+          </div>
+          <div class="preview-stage" id="previewStage">
+            <div class="preview-card" id="previewCard">
+              <div class="preview-card-body">
+                <span class="preview-tag" id="previewTag">Design System</span>
+                <h3 class="preview-heading" id="previewHeading">Craft Beautiful Interfaces</h3>
+                <p class="preview-para" id="previewPara">A cohesive visual language that brings harmony to every element of your product. Start with strong foundations.</p>
+                <div class="preview-actions">
+                  <button class="preview-btn preview-btn--primary" id="previewBtnPrimary">Get Started</button>
+                  <button class="preview-btn preview-btn--ghost" id="previewBtnGhost">Learn More</button>
+                </div>
+              </div>
+              <div class="preview-card-footer" id="previewCardFooter">
+                <span class="preview-dot" id="previewDot"></span>
+                <span class="preview-footer-text">Generated Aesthetic</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </div>
+    <!-- /generator-grid -->
+
+    <!-- Export Section -->
+    <section class="section-card export-section" aria-label="Export options">
+      <div class="section-header">
+        <h2 class="section-title">Export</h2>
+      </div>
+      <div class="export-tabs" role="tablist" aria-label="Export format">
+        <button class="export-tab active" role="tab" data-tab="css" aria-selected="true" id="tab-css">CSS Variables</button>
+        <button class="export-tab" role="tab" data-tab="tailwind" aria-selected="false" id="tab-tailwind">Tailwind Config</button>
+        <button class="export-tab" role="tab" data-tab="json" aria-selected="false" id="tab-json">JSON</button>
+      </div>
+      <div class="export-body">
+        <pre class="export-code" id="exportCode" aria-live="polite" aria-label="Export code output"><code id="exportCodeInner">Generate an aesthetic to see export options.</code></pre>
+        <button class="btn-copy" id="copyBtn" aria-label="Copy code to clipboard" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span class="copy-text">Copy</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section class="history-section" aria-label="Session history">
+      <div class="history-header">
+        <h2 class="section-title">History</h2>
+        <span class="history-count" id="historyCount">0 / 10</span>
+      </div>
+      <div class="history-grid" id="historyGrid">
+        <p class="history-empty" id="historyEmpty">Generate your first aesthetic to see history here.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>Built with color theory &amp; typographic logic &mdash; pure HTML, CSS &amp; JS.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
