@@ -1,6 +1,5 @@
 /* ============================================================
    AESTHETIC GENERATOR — script.js
-   Color generation, font pairing, WCAG contrast, export, history
    ============================================================ */
 
 'use strict';
@@ -9,34 +8,38 @@
    CONSTANTS
 ────────────────────────────────────────────────────────────── */
 
-const COLOR_ROLES = ['primary', 'secondary', 'accent', 'background', 'text'];
-
+const COLOR_ROLES   = ['primary', 'secondary', 'accent', 'background', 'text'];
 const HARMONY_TYPES = ['complementary', 'analogous', 'triadic', 'split-complementary'];
 
+const ROLE_LABELS = {
+  primary: 'Primary', secondary: 'Secondary',
+  accent:  'Accent',  background: 'Background', text: 'Text',
+};
+
 /**
- * Curated Google Fonts pairings: each has a heading + body font,
- * a typographic category label, and display weights.
+ * Curated font pairs with typographic categories.
+ * type: 'serif' | 'sans' | 'display'
  */
 const FONT_PAIRS = [
-  { heading: 'Playfair Display', headingWeights: '400;700', body: 'Lato', bodyWeights: '400;500', category: 'Serif + Humanist' },
-  { heading: 'Merriweather', headingWeights: '400;700', body: 'Source Sans 3', bodyWeights: '400;600', category: 'Serif + Geometric' },
-  { heading: 'Libre Baskerville', headingWeights: '400;700', body: 'Open Sans', bodyWeights: '400;600', category: 'Serif + Sans' },
-  { heading: 'Cormorant Garamond', headingWeights: '600;700', body: 'Raleway', bodyWeights: '400;500', category: 'Display + Geometric' },
-  { heading: 'Lora', headingWeights: '400;700', body: 'Nunito', bodyWeights: '400;600', category: 'Serif + Rounded' },
-  { heading: 'DM Serif Display', headingWeights: '400', body: 'DM Sans', bodyWeights: '400;500', category: 'Serif + Geometric' },
-  { heading: 'Fraunces', headingWeights: '400;700', body: 'Inter', bodyWeights: '400;500', category: 'Optical + Neutral' },
-  { heading: 'Montserrat', headingWeights: '600;700', body: 'Merriweather', bodyWeights: '400', category: 'Geometric + Serif' },
-  { heading: 'Space Grotesk', headingWeights: '500;700', body: 'Space Mono', bodyWeights: '400', category: 'Geometric + Mono' },
-  { heading: 'Josefin Sans', headingWeights: '300;600', body: 'Crimson Text', bodyWeights: '400;600', category: 'Geometric + Serif' },
-  { heading: 'Syne', headingWeights: '600;800', body: 'Outfit', bodyWeights: '400;500', category: 'Display + Geometric' },
-  { heading: 'Plus Jakarta Sans', headingWeights: '500;700', body: 'Lora', bodyWeights: '400', category: 'Humanist + Serif' },
-  { heading: 'Abril Fatface', headingWeights: '400', body: 'Lato', bodyWeights: '400;500', category: 'Display + Humanist' },
-  { heading: 'Fjalla One', headingWeights: '400', body: 'Cantarell', bodyWeights: '400;700', category: 'Condensed + Humanist' },
-  { heading: 'Spectral', headingWeights: '400;700', body: 'Karla', bodyWeights: '400;500', category: 'Serif + Grotesque' },
+  { heading: 'Playfair Display', hw: '400;700', body: 'Lato',          bw: '400;500', category: 'Serif + Humanist',    type: 'serif'   },
+  { heading: 'Merriweather',     hw: '400;700', body: 'Source Sans 3', bw: '400;600', category: 'Serif + Geometric',   type: 'serif'   },
+  { heading: 'Libre Baskerville',hw: '400;700', body: 'Open Sans',     bw: '400;600', category: 'Serif + Sans',        type: 'serif'   },
+  { heading: 'Lora',             hw: '400;700', body: 'Nunito',        bw: '400;600', category: 'Serif + Rounded',     type: 'serif'   },
+  { heading: 'DM Serif Display', hw: '400',     body: 'DM Sans',       bw: '400;500', category: 'Serif + Geometric',   type: 'serif'   },
+  { heading: 'Fraunces',         hw: '400;700', body: 'Inter',         bw: '400;500', category: 'Optical + Neutral',   type: 'serif'   },
+  { heading: 'Spectral',         hw: '400;700', body: 'Karla',         bw: '400;500', category: 'Serif + Grotesque',   type: 'serif'   },
+  { heading: 'Montserrat',       hw: '600;700', body: 'Merriweather',  bw: '400',     category: 'Geometric + Serif',   type: 'sans'    },
+  { heading: 'Space Grotesk',    hw: '500;700', body: 'Space Mono',    bw: '400',     category: 'Geometric + Mono',    type: 'sans'    },
+  { heading: 'Josefin Sans',     hw: '300;600', body: 'Crimson Text',  bw: '400;600', category: 'Geometric + Serif',   type: 'sans'    },
+  { heading: 'Syne',             hw: '600;800', body: 'Outfit',        bw: '400;500', category: 'Display + Geometric', type: 'sans'    },
+  { heading: 'Plus Jakarta Sans',hw: '500;700', body: 'Lora',          bw: '400',     category: 'Humanist + Serif',    type: 'sans'    },
+  { heading: 'Fjalla One',       hw: '400',     body: 'Cantarell',     bw: '400;700', category: 'Condensed + Humanist',type: 'sans'    },
+  { heading: 'Cormorant Garamond',hw:'600;700', body: 'Raleway',       bw: '400;500', category: 'Display + Geometric', type: 'display' },
+  { heading: 'Abril Fatface',    hw: '400',     body: 'Lato',          bw: '400;500', category: 'Display + Humanist',  type: 'display' },
 ];
 
 /* ──────────────────────────────────────────────────────────────
-   APPLICATION STATE
+   STATE
 ────────────────────────────────────────────────────────────── */
 
 const state = {
@@ -47,59 +50,34 @@ const state = {
     background: { h: 0, s: 0, l: 0, hex: '#000000' },
     text:       { h: 0, s: 0, l: 0, hex: '#000000' },
   },
-  locks: {
-    primary:    false,
-    secondary:  false,
-    accent:     false,
-    background: false,
-    text:       false,
-    heading:    false,
-    body:       false,
-  },
-  fonts: {
-    heading: null,
-    body:    null,
-    pair:    null,
-  },
-  harmony:    '',
-  activeTab:  'css',
-  history:    [],
+  locks:   { primary: false, secondary: false, accent: false, background: false, text: false, heading: false, body: false },
+  fonts:   { heading: null, body: null, pair: null },
+  harmony:      '',
+  harmonyMode:  'random',
+  fontMode:     'random',
+  activeTab:    'css',
+  history:      [],
   hasGenerated: false,
+  // Color picker
+  picker: { isOpen: false, role: null },
 };
 
 /* ──────────────────────────────────────────────────────────────
    COLOR UTILITIES
 ────────────────────────────────────────────────────────────── */
 
-/** Wrap hue to 0–360 */
-function wrapHue(h) {
-  return ((h % 360) + 360) % 360;
-}
+function wrapHue(h) { return ((h % 360) + 360) % 360; }
+function rnd(min, max) { return min + Math.random() * (max - min); }
+function rndInt(min, max) { return Math.floor(rnd(min, max + 1)); }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
-/** Random float between min and max */
-function rnd(min, max) {
-  return min + Math.random() * (max - min);
-}
-
-/** Random integer between min and max (inclusive) */
-function rndInt(min, max) {
-  return Math.floor(rnd(min, max + 1));
-}
-
-/**
- * Convert HSL (h: 0-360, s: 0-100, l: 0-100) to RGB (0-255 each).
- */
 function hslToRgb(h, s, l) {
-  h = h / 360;
-  s = s / 100;
-  l = l / 100;
-
+  h = h / 360; s = s / 100; l = l / 100;
   let r, g, b;
-
   if (s === 0) {
     r = g = b = l;
   } else {
-    const hue2rgb = (p, q, t) => {
+    const hue2 = (p, q, t) => {
       if (t < 0) t += 1;
       if (t > 1) t -= 1;
       if (t < 1/6) return p + (q - p) * 6 * t;
@@ -109,175 +87,141 @@ function hslToRgb(h, s, l) {
     };
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1/3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1/3);
+    r = hue2(p, q, h + 1/3);
+    g = hue2(p, q, h);
+    b = hue2(p, q, h - 1/3);
   }
-
-  return {
-    r: Math.round(r * 255),
-    g: Math.round(g * 255),
-    b: Math.round(b * 255),
-  };
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 }
 
-/** Convert RGB to hex string */
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) {
+    h = s = 0;
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      default: h = ((r - g) / d + 4) / 6;
+    }
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
 function rgbToHex({ r, g, b }) {
   return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 
-/** Get hex string from HSL */
-function hslToHex(h, s, l) {
-  return rgbToHex(hslToRgb(h, s, l));
+function hexToRgb(hex) {
+  const c = hex.replace('#', '');
+  const full = c.length === 3 ? c.split('').map(x => x + x).join('') : c;
+  return { r: parseInt(full.slice(0,2), 16), g: parseInt(full.slice(2,4), 16), b: parseInt(full.slice(4,6), 16) };
 }
 
-/** Build a color object from HSL values */
+function hexToHsl(hex) { const rgb = hexToRgb(hex); return rgbToHsl(rgb.r, rgb.g, rgb.b); }
+function hslToHex(h, s, l) { return rgbToHex(hslToRgb(h, s, l)); }
+
 function makeColor(h, s, l) {
   h = wrapHue(h);
-  s = Math.max(0, Math.min(100, s));
-  l = Math.max(0, Math.min(100, l));
+  s = clamp(s, 0, 100);
+  l = clamp(l, 0, 100);
   return { h, s, l, hex: hslToHex(h, s, l) };
+}
+
+function hexWithAlpha(hex, alpha) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   WCAG CONTRAST
+────────────────────────────────────────────────────────────── */
+
+function relativeLuminance({ r, g, b }) {
+  const lin = v => { const s = v / 255; return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4); };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+function contrastRatio(hex1, hex2) {
+  const L1 = relativeLuminance(hexToRgb(hex1));
+  const L2 = relativeLuminance(hexToRgb(hex2));
+  const hi = Math.max(L1, L2), lo = Math.min(L1, L2);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function getContrastColor(hex) {
+  return relativeLuminance(hexToRgb(hex)) > 0.179 ? '#000000' : '#FFFFFF';
 }
 
 /* ──────────────────────────────────────────────────────────────
    PALETTE GENERATION — Harmony Algorithms
 ────────────────────────────────────────────────────────────── */
 
-/**
- * Generate a 5-color palette based on the given harmony type.
- * Each call randomizes saturation/lightness within sensible ranges
- * while keeping the hue relationships consistent.
- */
 function generatePalette(harmonyType, baseHue) {
   const H = baseHue ?? rnd(0, 360);
-  let palette = {};
-
   switch (harmonyType) {
     case 'complementary': {
-      // Two hues 180° apart
       const C = wrapHue(H + 180);
-      palette = {
-        background: makeColor(H,  rnd(6, 14),  rnd(93, 97)),
-        text:       makeColor(H,  rnd(15, 30), rnd(9,  17)),
-        primary:    makeColor(H,  rnd(60, 78), rnd(38, 52)),
-        secondary:  makeColor(C,  rnd(45, 65), rnd(44, 58)),
-        accent:     makeColor(C,  rnd(65, 82), rnd(52, 66)),
+      return {
+        background: makeColor(H, rnd(6,14),  rnd(93,97)),
+        text:       makeColor(H, rnd(15,30), rnd(9,17)),
+        primary:    makeColor(H, rnd(60,78), rnd(38,52)),
+        secondary:  makeColor(C, rnd(45,65), rnd(44,58)),
+        accent:     makeColor(C, rnd(65,82), rnd(52,66)),
       };
-      break;
     }
     case 'analogous': {
-      // Three hues each 30° apart
-      const H2 = wrapHue(H + 30);
-      const H3 = wrapHue(H + 60);
-      palette = {
-        background: makeColor(H,  rnd(6, 12),  rnd(93, 97)),
-        text:       makeColor(H,  rnd(18, 32), rnd(9,  16)),
-        primary:    makeColor(H,  rnd(62, 78), rnd(38, 52)),
-        secondary:  makeColor(H2, rnd(52, 68), rnd(44, 57)),
-        accent:     makeColor(H3, rnd(55, 72), rnd(48, 62)),
+      const H2 = wrapHue(H + 30), H3 = wrapHue(H + 60);
+      return {
+        background: makeColor(H,  rnd(6,12),  rnd(93,97)),
+        text:       makeColor(H,  rnd(18,32), rnd(9,16)),
+        primary:    makeColor(H,  rnd(62,78), rnd(38,52)),
+        secondary:  makeColor(H2, rnd(52,68), rnd(44,57)),
+        accent:     makeColor(H3, rnd(55,72), rnd(48,62)),
       };
-      break;
     }
     case 'triadic': {
-      // Three hues 120° apart
-      const T1 = wrapHue(H + 120);
-      const T2 = wrapHue(H + 240);
-      palette = {
-        background: makeColor(H,  rnd(6, 12),  rnd(93, 97)),
-        text:       makeColor(T1, rnd(18, 34), rnd(9,  18)),
-        primary:    makeColor(H,  rnd(60, 76), rnd(40, 52)),
-        secondary:  makeColor(T1, rnd(48, 65), rnd(44, 57)),
-        accent:     makeColor(T2, rnd(55, 72), rnd(46, 60)),
+      const T1 = wrapHue(H + 120), T2 = wrapHue(H + 240);
+      return {
+        background: makeColor(H,  rnd(6,12),  rnd(93,97)),
+        text:       makeColor(T1, rnd(18,34), rnd(9,18)),
+        primary:    makeColor(H,  rnd(60,76), rnd(40,52)),
+        secondary:  makeColor(T1, rnd(48,65), rnd(44,57)),
+        accent:     makeColor(T2, rnd(55,72), rnd(46,60)),
       };
-      break;
     }
-    case 'split-complementary':
-    default: {
-      // Base hue + two hues flanking the complement (±30°)
-      const S1 = wrapHue(H + 150);
-      const S2 = wrapHue(H + 210);
-      palette = {
-        background: makeColor(H,  rnd(6, 14),  rnd(93, 97)),
-        text:       makeColor(H,  rnd(15, 30), rnd(9,  17)),
-        primary:    makeColor(H,  rnd(60, 78), rnd(38, 52)),
-        secondary:  makeColor(S1, rnd(48, 65), rnd(44, 57)),
-        accent:     makeColor(S2, rnd(55, 72), rnd(48, 62)),
+    default: { // split-complementary
+      const S1 = wrapHue(H + 150), S2 = wrapHue(H + 210);
+      return {
+        background: makeColor(H,  rnd(6,14),  rnd(93,97)),
+        text:       makeColor(H,  rnd(15,30), rnd(9,17)),
+        primary:    makeColor(H,  rnd(60,78), rnd(38,52)),
+        secondary:  makeColor(S1, rnd(48,65), rnd(44,57)),
+        accent:     makeColor(S2, rnd(55,72), rnd(48,62)),
       };
-      break;
     }
   }
-
-  return palette;
-}
-
-/* ──────────────────────────────────────────────────────────────
-   WCAG CONTRAST CALCULATION
-────────────────────────────────────────────────────────────── */
-
-/**
- * Compute the relative luminance of an sRGB color.
- * https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
- */
-function relativeLuminance({ r, g, b }) {
-  const toLinear = (v) => {
-    const s = v / 255;
-    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-}
-
-/**
- * Compute WCAG contrast ratio between two hex colors.
- * Returns a number like 4.52.
- */
-function contrastRatio(hex1, hex2) {
-  const rgb1 = hslToRgbFromHex(hex1);
-  const rgb2 = hslToRgbFromHex(hex2);
-  const L1 = relativeLuminance(rgb1);
-  const L2 = relativeLuminance(rgb2);
-  const lighter = Math.max(L1, L2);
-  const darker  = Math.min(L1, L2);
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-/**
- * Parse a hex color to RGB. Accepts #RRGGBB or #RGB.
- */
-function hslToRgbFromHex(hex) {
-  const c = hex.replace('#', '');
-  const full = c.length === 3
-    ? c.split('').map(x => x + x).join('')
-    : c;
-  return {
-    r: parseInt(full.slice(0, 2), 16),
-    g: parseInt(full.slice(2, 4), 16),
-    b: parseInt(full.slice(4, 6), 16),
-  };
 }
 
 /* ──────────────────────────────────────────────────────────────
    FONT LOADING
 ────────────────────────────────────────────────────────────── */
 
-/** Build a Google Fonts CSS2 URL for a font pair */
 function buildGoogleFontsUrl(pair) {
   const h = pair.heading.replace(/ /g, '+');
   const b = pair.body.replace(/ /g, '+');
-  const params = [
-    `family=${h}:ital,wght@0,${pair.headingWeights};1,${pair.headingWeights}`,
-    `family=${b}:wght@${pair.bodyWeights}`,
-    'display=swap',
-  ];
-  return `https://fonts.googleapis.com/css2?${params.join('&')}`;
+  return `https://fonts.googleapis.com/css2?family=${h}:ital,wght@0,${pair.hw};1,${pair.hw}&family=${b}:wght@${pair.bw}&display=swap`;
 }
 
-/** Inject or update the dynamic font link tag */
 function loadFontPair(pair) {
-  const id = 'dynamic-fonts';
-  let link = document.getElementById(id);
+  let link = document.getElementById('dynamic-fonts');
   if (!link) {
     link = document.createElement('link');
-    link.id = id;
+    link.id = 'dynamic-fonts';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
   }
@@ -288,56 +232,41 @@ function loadFontPair(pair) {
    GENERATION ENGINE
 ────────────────────────────────────────────────────────────── */
 
-/**
- * Main generation function. Respects locked elements.
- * Called on "Generate" button click.
- */
 function generate() {
-  // Pick harmony type (or keep if all colors locked)
-  const harmonyType = HARMONY_TYPES[rndInt(0, HARMONY_TYPES.length - 1)];
-  const newHarmony = harmonyType;
+  // Pick harmony type
+  const harmonyType = state.harmonyMode === 'random'
+    ? HARMONY_TYPES[rndInt(0, HARMONY_TYPES.length - 1)]
+    : state.harmonyMode;
 
-  // Generate full palette
+  state.harmony = harmonyType;
+
+  // Generate new palette, apply locks
   const newPalette = generatePalette(harmonyType);
-
-  // Apply locks: keep existing color for locked roles
   COLOR_ROLES.forEach(role => {
-    if (!state.locks[role]) {
-      state.palette[role] = newPalette[role];
-    }
+    if (!state.locks[role]) state.palette[role] = newPalette[role];
   });
 
-  // Always update harmony label if at least one color changed
-  state.harmony = newHarmony;
-
-  // Font pair: pick a new pair if not locked
+  // Pick font pair filtered by fontMode
   if (!state.locks.heading || !state.locks.body) {
     const pool = FONT_PAIRS.filter(p => {
-      // Don't re-pick the same pair if possible
-      if (!state.fonts.pair) return true;
-      return p.heading !== state.fonts.pair.heading || p.body !== state.fonts.pair.body;
+      const modeOk = state.fontMode === 'random' || p.type === state.fontMode;
+      const notSame = !state.fonts.pair ||
+        p.heading !== state.fonts.pair.heading || p.body !== state.fonts.pair.body;
+      return modeOk && notSame;
     });
-    const newPair = pool[rndInt(0, pool.length - 1)];
-
+    const candidates = pool.length > 0 ? pool : FONT_PAIRS;
+    const newPair = candidates[rndInt(0, candidates.length - 1)];
     if (!state.locks.heading) state.fonts.heading = newPair.heading;
     if (!state.locks.body)    state.fonts.body    = newPair.body;
-
-    // Update the full pair reference (used for export URL)
-    // Find the pair that matches current heading+body
-    const matchedPair = FONT_PAIRS.find(p =>
+    const matched = FONT_PAIRS.find(p =>
       p.heading === state.fonts.heading && p.body === state.fonts.body
     ) || newPair;
-    state.fonts.pair = matchedPair;
-
-    loadFontPair(matchedPair);
+    state.fonts.pair = matched;
+    loadFontPair(matched);
   }
 
   state.hasGenerated = true;
-
-  // Render everything
   renderAll();
-
-  // Push to history
   pushHistory();
 }
 
@@ -345,27 +274,16 @@ function generate() {
    RENDER: PALETTE
 ────────────────────────────────────────────────────────────── */
 
-const ROLE_LABELS = {
-  primary:    'Primary',
-  secondary:  'Secondary',
-  accent:     'Accent',
-  background: 'Background',
-  text:       'Text',
-};
-
 function renderPalette() {
-  const grid    = document.getElementById('paletteGrid');
-  const hexRow  = document.getElementById('paletteHexRow');
-  const badge   = document.getElementById('harmonyBadge');
+  const grid   = document.getElementById('paletteGrid');
+  const hexRow = document.getElementById('paletteHexRow');
+  document.getElementById('harmonyBadge').textContent = capitalize(state.harmony);
 
-  badge.textContent = capitalize(state.harmony);
-
-  // Build swatches
-  grid.innerHTML = '';
+  grid.innerHTML   = '';
   hexRow.innerHTML = '';
 
   COLOR_ROLES.forEach(role => {
-    const color = state.palette[role];
+    const color    = state.palette[role];
     const isLocked = state.locks[role];
 
     // Swatch wrapper
@@ -376,31 +294,32 @@ function renderPalette() {
     const swatch = document.createElement('div');
     swatch.className = 'swatch' + (isLocked ? ' is-locked' : '');
     swatch.style.background = color.hex;
-    swatch.setAttribute('title', `${ROLE_LABELS[role]}: ${color.hex}`);
-    swatch.setAttribute('aria-label', `${ROLE_LABELS[role]} color: ${color.hex}${isLocked ? ' (locked)' : ''}`);
+    swatch.title = `Edit ${ROLE_LABELS[role]}`;
+    swatch.setAttribute('aria-label', `${ROLE_LABELS[role]} color: ${color.hex}. Click to edit.`);
 
-    // Lock button inside swatch
+    // Edit hint overlay
+    const hint = document.createElement('span');
+    hint.className = 'swatch-edit-hint';
+    hint.textContent = 'Edit';
+    hint.setAttribute('aria-hidden', 'true');
+    swatch.appendChild(hint);
+
+    // Lock button
     const lockBtn = document.createElement('button');
     lockBtn.className = 'swatch-lock-btn' + (isLocked ? ' is-locked' : '');
     lockBtn.setAttribute('aria-label', (isLocked ? 'Unlock' : 'Lock') + ` ${ROLE_LABELS[role]} color`);
     lockBtn.setAttribute('aria-pressed', String(isLocked));
     lockBtn.dataset.role = role;
     lockBtn.innerHTML = `
-      <svg class="lock-icon unlock-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-        <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-      </svg>
-      <svg class="lock-icon locked-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-      </svg>`;
-    lockBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleColorLock(role);
-    });
-
+      <svg class="lock-icon unlock-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+      <svg class="lock-icon locked-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+    lockBtn.addEventListener('click', e => { e.stopPropagation(); toggleColorLock(role); });
     swatch.appendChild(lockBtn);
-    swatch.addEventListener('click', () => toggleColorLock(role));
+
+    // Click swatch → open color picker
+    swatch.addEventListener('click', () => {
+      if (state.hasGenerated) openColorPicker(role, swatch);
+    });
 
     // Label
     const label = document.createElement('span');
@@ -411,19 +330,20 @@ function renderPalette() {
     wrap.appendChild(label);
     grid.appendChild(wrap);
 
-    // Hex value
+    // Hex value (click to copy)
     const hexEl = document.createElement('span');
-    hexEl.className = 'swatch-hex';
+    hexEl.className  = 'swatch-hex';
     hexEl.textContent = color.hex.toUpperCase();
     hexEl.title = 'Click to copy';
     hexEl.setAttribute('role', 'button');
     hexEl.setAttribute('tabindex', '0');
     hexEl.addEventListener('click', () => copyHex(hexEl, color.hex));
-    hexEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') copyHex(hexEl, color.hex);
-    });
+    hexEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') copyHex(hexEl, color.hex); });
     hexRow.appendChild(hexEl);
   });
+
+  updateBrandIcon();
+  updateFavicon();
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -431,27 +351,20 @@ function renderPalette() {
 ────────────────────────────────────────────────────────────── */
 
 function renderFonts() {
-  const pair = state.fonts.pair;
-  if (!pair) return;
-
+  if (!state.fonts.pair) return;
   document.getElementById('headingFontName').textContent = state.fonts.heading || '—';
   document.getElementById('bodyFontName').textContent    = state.fonts.body    || '—';
-  document.getElementById('pairCategory').textContent   = pair.category || '—';
+  document.getElementById('pairCategory').textContent   = state.fonts.pair.category || '—';
 
-  const headingPreview = document.getElementById('headingPreview');
-  const bodyPreview    = document.getElementById('bodyPreview');
+  document.getElementById('headingPreview').style.fontFamily = `'${state.fonts.heading}', serif`;
+  document.getElementById('bodyPreview').style.fontFamily    = `'${state.fonts.body}', sans-serif`;
 
-  headingPreview.style.fontFamily = `'${state.fonts.heading}', serif`;
-  bodyPreview.style.fontFamily    = `'${state.fonts.body}', sans-serif`;
-
-  // Sync lock button states
   ['heading', 'body'].forEach(key => {
     const btn = document.querySelector(`.lock-btn[data-lock="${key}"]`);
     if (!btn) return;
-    const isLocked = state.locks[key];
-    btn.classList.toggle('is-locked', isLocked);
-    btn.setAttribute('aria-pressed', String(isLocked));
-    btn.setAttribute('aria-label', (isLocked ? 'Unlock' : 'Lock') + ` ${key} font`);
+    btn.classList.toggle('is-locked', state.locks[key]);
+    btn.setAttribute('aria-pressed', String(state.locks[key]));
+    btn.setAttribute('aria-label', (state.locks[key] ? 'Unlock' : 'Lock') + ` ${key} font`);
   });
 }
 
@@ -462,30 +375,19 @@ function renderFonts() {
 function renderAccessibility() {
   const bgHex   = state.palette.background.hex;
   const textHex = state.palette.text.hex;
-
   document.getElementById('contrastBgSwatch').style.background   = bgHex;
   document.getElementById('contrastTextSwatch').style.background = textHex;
-
   const ratio = contrastRatio(bgHex, textHex);
-  const ratioDisplay = ratio.toFixed(2);
-
-  document.getElementById('contrastRatio').textContent = ratioDisplay;
-
-  // WCAG thresholds
-  const aaPass    = ratio >= 4.5;
-  const aaaPass   = ratio >= 7.0;
-  const aaLarge   = ratio >= 3.0;
-
-  setBadge('badgeAA',    aaPass,  'AA');
-  setBadge('badgeAAA',   aaaPass, 'AAA');
-  setBadge('badgeLarge', aaLarge, 'AA Large');
+  document.getElementById('contrastRatio').textContent = ratio.toFixed(2);
+  setBadge('badgeAA',    ratio >= 4.5, 'AA');
+  setBadge('badgeAAA',   ratio >= 7.0, 'AAA');
+  setBadge('badgeLarge', ratio >= 3.0, 'AA Large');
 }
 
 function setBadge(id, pass, label) {
   const el = document.getElementById(id);
   el.className = 'wcag-badge ' + (pass ? 'pass' : 'fail');
   el.textContent = pass ? `✓ ${label}` : `✗ ${label}`;
-  el.setAttribute('aria-label', `${label}: ${pass ? 'Pass' : 'Fail'}`);
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -493,70 +395,50 @@ function setBadge(id, pass, label) {
 ────────────────────────────────────────────────────────────── */
 
 function renderPreview() {
-  const p = state.palette;
+  const p           = state.palette;
   const headingFont = state.fonts.heading || 'serif';
   const bodyFont    = state.fonts.body    || 'sans-serif';
 
-  const card       = document.getElementById('previewCard');
-  const cardBody   = card.querySelector('.preview-card-body');
-  const tag        = document.getElementById('previewTag');
-  const heading    = document.getElementById('previewHeading');
-  const para       = document.getElementById('previewPara');
-  const btnPrimary = document.getElementById('previewBtnPrimary');
-  const btnGhost   = document.getElementById('previewBtnGhost');
-  const footer     = document.getElementById('previewCardFooter');
-  const dot        = document.getElementById('previewDot');
-
-  // Card background
+  // Card background = palette background
+  const card = document.getElementById('previewCard');
   card.style.background = p.background.hex;
-  card.style.color      = p.text.hex;
 
-  // Tag pill: accent background
-  tag.style.background = hexWithAlpha(p.accent.hex, 0.15);
-  tag.style.color      = p.accent.hex;
+  // Band: secondary color is prominently featured here
+  const band = document.getElementById('previewBand');
+  band.style.background = p.secondary.hex;
+  band.style.color      = getContrastColor(p.secondary.hex);
 
-  // Heading font
+  // Heading
+  const heading = document.getElementById('previewHeading');
   heading.style.fontFamily = `'${headingFont}', serif`;
   heading.style.color      = p.text.hex;
 
-  // Body font
+  // Paragraph
+  const para = document.getElementById('previewPara');
   para.style.fontFamily = `'${bodyFont}', sans-serif`;
   para.style.color      = hexWithAlpha(p.text.hex, 0.7);
 
-  // Primary button: primary color
+  // Primary button
+  const btnPrimary = document.getElementById('previewBtnPrimary');
   btnPrimary.style.background  = p.primary.hex;
   btnPrimary.style.color       = getContrastColor(p.primary.hex);
   btnPrimary.style.border      = 'none';
   btnPrimary.style.fontFamily  = `'${bodyFont}', sans-serif`;
 
-  // Ghost button
-  btnGhost.style.background   = 'transparent';
-  btnGhost.style.color        = p.primary.hex;
-  btnGhost.style.border       = `1.5px solid ${p.primary.hex}`;
-  btnGhost.style.fontFamily   = `'${bodyFont}', sans-serif`;
+  // Ghost button: uses secondary color for outline/text
+  const btnGhost = document.getElementById('previewBtnGhost');
+  btnGhost.style.background  = 'transparent';
+  btnGhost.style.color       = p.secondary.hex;
+  btnGhost.style.border      = `1.5px solid ${p.secondary.hex}`;
+  btnGhost.style.fontFamily  = `'${bodyFont}', sans-serif`;
 
-  // Footer
-  footer.style.background = hexWithAlpha(p.text.hex, 0.04);
+  // Footer: accent tint
+  const footer = document.getElementById('previewCardFooter');
+  footer.style.background = hexWithAlpha(p.accent.hex, 0.08);
   footer.style.color      = hexWithAlpha(p.text.hex, 0.5);
-  dot.style.background    = p.accent.hex;
-}
 
-/**
- * Given a hex color, return '#fff' or '#000' for best legibility.
- */
-function getContrastColor(hex) {
-  const rgb = hslToRgbFromHex(hex);
-  const L = relativeLuminance(rgb);
-  return L > 0.179 ? '#000000' : '#FFFFFF';
-}
-
-/**
- * Convert a hex color to rgba string with given alpha.
- * Crude but effective for preview use.
- */
-function hexWithAlpha(hex, alpha) {
-  const { r, g, b } = hslToRgbFromHex(hex);
-  return `rgba(${r},${g},${b},${alpha})`;
+  const dot = document.getElementById('previewDot');
+  dot.style.background = p.accent.hex;
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -565,26 +447,23 @@ function hexWithAlpha(hex, alpha) {
 
 function renderExport() {
   if (!state.hasGenerated) return;
-  const tab  = state.activeTab;
-  const code = buildExportString(tab);
-  document.getElementById('exportCodeInner').textContent = code;
+  document.getElementById('exportCodeInner').textContent = buildExportString(state.activeTab);
   document.getElementById('copyBtn').disabled = false;
 }
 
 function buildExportString(format) {
-  const p    = state.palette;
-  const pair = state.fonts.pair;
+  const p       = state.palette;
+  const pair    = state.fonts.pair;
   const fontsUrl = pair ? buildGoogleFontsUrl(pair) : '';
-
   switch (format) {
-    case 'css': return buildCSSExport(p, fontsUrl);
-    case 'tailwind': return buildTailwindExport(p, fontsUrl);
-    case 'json': return buildJSONExport(p, fontsUrl);
+    case 'css':      return buildCSS(p, fontsUrl);
+    case 'tailwind': return buildTailwind(p, fontsUrl);
+    case 'json':     return buildJSON(p, fontsUrl);
     default: return '';
   }
 }
 
-function buildCSSExport(p, fontsUrl) {
+function buildCSS(p, fontsUrl) {
   return [
     `/* Google Fonts */`,
     `@import url('${fontsUrl}');`,
@@ -604,9 +483,7 @@ function buildCSSExport(p, fontsUrl) {
   ].join('\n');
 }
 
-function buildTailwindExport(p, fontsUrl) {
-  const heading = state.fonts.heading || '';
-  const body    = state.fonts.body    || '';
+function buildTailwind(p, fontsUrl) {
   return [
     `// Google Fonts: ${fontsUrl}`,
     ``,
@@ -622,8 +499,8 @@ function buildTailwindExport(p, fontsUrl) {
     `        foreground: '${p.text.hex}',`,
     `      },`,
     `      fontFamily: {`,
-    `        heading: ['${heading}', 'serif'],`,
-    `        body:    ['${body}', 'sans-serif'],`,
+    `        heading: ['${state.fonts.heading}', 'serif'],`,
+    `        body:    ['${state.fonts.body}', 'sans-serif'],`,
     `      },`,
     `    },`,
     `  },`,
@@ -631,23 +508,12 @@ function buildTailwindExport(p, fontsUrl) {
   ].join('\n');
 }
 
-function buildJSONExport(p, fontsUrl) {
-  const obj = {
-    harmony:  state.harmony,
-    fonts: {
-      heading: state.fonts.heading,
-      body:    state.fonts.body,
-      googleFontsUrl: fontsUrl,
-    },
-    colors: {
-      primary:    p.primary.hex,
-      secondary:  p.secondary.hex,
-      accent:     p.accent.hex,
-      background: p.background.hex,
-      text:       p.text.hex,
-    },
-  };
-  return JSON.stringify(obj, null, 2);
+function buildJSON(p, fontsUrl) {
+  return JSON.stringify({
+    harmony: state.harmony,
+    fonts: { heading: state.fonts.heading, body: state.fonts.body, googleFontsUrl: fontsUrl },
+    colors: { primary: p.primary.hex, secondary: p.secondary.hex, accent: p.accent.hex, background: p.background.hex, text: p.text.hex },
+  }, null, 2);
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -663,12 +529,45 @@ function renderAll() {
 }
 
 /* ──────────────────────────────────────────────────────────────
+   BRAND ICON + FAVICON (dynamic palette colors)
+────────────────────────────────────────────────────────────── */
+
+function updateBrandIcon() {
+  const p = state.palette;
+  const icon = document.getElementById('brandIcon');
+  if (!icon) return;
+  const colors = [p.primary.hex, p.secondary.hex, p.accent.hex, p.background.hex, p.text.hex];
+  const classes = ['bs0', 'bs1', 'bs2', 'bs3', 'bs4'];
+  classes.forEach((cls, i) => {
+    const el = icon.querySelector(`.${cls}`);
+    if (el) el.style.fill = colors[i];
+  });
+}
+
+function updateFavicon() {
+  const p = state.palette;
+  const cols = [p.primary.hex, p.secondary.hex, p.accent.hex, p.background.hex, p.text.hex];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    <rect width="32" height="32" rx="8" fill="${cols[3]}"/>
+    <rect x="2.5" y="5"  width="5" height="22" rx="2.2" fill="${cols[0]}"/>
+    <rect x="9"   y="5"  width="5" height="22" rx="2.2" fill="${cols[1]}"/>
+    <rect x="15.5" y="5" width="5" height="22" rx="2.2" fill="${cols[2]}"/>
+    <rect x="22"  y="5"  width="5" height="22" rx="2.2" fill="${cols[4]}"/>
+    <rect x="28"  y="5"  width="2" height="22" rx="1"   fill="${cols[0]}"/>
+  </svg>`;
+  let link = document.querySelector('link[rel="icon"]');
+  if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+  link.type = 'image/svg+xml';
+  link.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
+/* ──────────────────────────────────────────────────────────────
    LOCK MANAGEMENT
 ────────────────────────────────────────────────────────────── */
 
 function toggleColorLock(role) {
   state.locks[role] = !state.locks[role];
-  renderPalette(); // Re-render swatches to reflect lock state
+  renderPalette();
 }
 
 function toggleFontLock(key) {
@@ -677,25 +576,111 @@ function toggleFontLock(key) {
 }
 
 /* ──────────────────────────────────────────────────────────────
+   COLOR PICKER
+────────────────────────────────────────────────────────────── */
+
+function openColorPicker(role, swatchEl) {
+  state.picker.role = role;
+  const popover  = document.getElementById('colorPickerPopover');
+  const backdrop = document.getElementById('pickerBackdrop');
+
+  // Sync content
+  syncPickerToState(role);
+
+  // Position near swatch, keeping in viewport
+  const rect   = swatchEl.getBoundingClientRect();
+  const popW   = 240;
+  const margin = 10;
+  let left = rect.left;
+  let top  = rect.bottom + margin;
+
+  if (left + popW > window.innerWidth - margin) left = window.innerWidth - popW - margin;
+  if (left < margin) left = margin;
+  // If not enough room below, show above
+  if (top + 300 > window.innerHeight) top = rect.top - 300 - margin;
+  if (top < margin) top = margin;
+
+  popover.style.left = left + 'px';
+  popover.style.top  = top  + 'px';
+
+  popover.classList.add('is-open');
+  popover.setAttribute('aria-hidden', 'false');
+  backdrop.classList.add('is-open');
+  state.picker.isOpen = true;
+}
+
+function closeColorPicker() {
+  const popover  = document.getElementById('colorPickerPopover');
+  const backdrop = document.getElementById('pickerBackdrop');
+  popover.classList.remove('is-open');
+  popover.setAttribute('aria-hidden', 'true');
+  backdrop.classList.remove('is-open');
+  state.picker.isOpen = false;
+  state.picker.role   = null;
+}
+
+function syncPickerToState(role) {
+  const color = state.palette[role];
+  document.getElementById('pickerRoleLabel').textContent    = ROLE_LABELS[role];
+  document.getElementById('pickerHexBadge').textContent     = color.hex.toUpperCase();
+  document.getElementById('pickerPreviewSwatch').style.background = color.hex;
+  document.getElementById('pickerNativeInput').value        = color.hex;
+  document.getElementById('pickerSaturation').value         = Math.round(color.s);
+  document.getElementById('pickerLightness').value          = Math.round(color.l);
+  document.getElementById('pickerSatVal').textContent       = Math.round(color.s) + '%';
+  document.getElementById('pickerLightVal').textContent     = Math.round(color.l) + '%';
+}
+
+function applyPickerColor(role, hex) {
+  const { h, s, l } = hexToHsl(hex);
+  state.palette[role] = makeColor(h, s, l);
+  syncPickerToState(role);
+  renderAll();
+  if (state.picker.isOpen) pushHistory();
+}
+
+function applySliderChange(role) {
+  const s = parseFloat(document.getElementById('pickerSaturation').value);
+  const l = parseFloat(document.getElementById('pickerLightness').value);
+  const h = state.palette[role].h;
+  state.palette[role] = makeColor(h, s, l);
+  const hex = state.palette[role].hex;
+  document.getElementById('pickerPreviewSwatch').style.background = hex;
+  document.getElementById('pickerHexBadge').textContent           = hex.toUpperCase();
+  document.getElementById('pickerNativeInput').value              = hex;
+  document.getElementById('pickerSatVal').textContent             = Math.round(s) + '%';
+  document.getElementById('pickerLightVal').textContent           = Math.round(l) + '%';
+  renderAll();
+}
+
+/** Extract hue from current edited color, regenerate all unlocked roles around it */
+function harmonizeFromPickedColor() {
+  const role  = state.picker.role;
+  if (!role) return;
+  const color = state.palette[role];
+  // Regenerate palette using this hue
+  const newPalette = generatePalette(state.harmony || HARMONY_TYPES[0], color.h);
+  COLOR_ROLES.forEach(r => {
+    if (!state.locks[r] && r !== role) state.palette[r] = newPalette[r];
+  });
+  syncPickerToState(role);
+  renderAll();
+  pushHistory();
+}
+
+/* ──────────────────────────────────────────────────────────────
    HISTORY
 ────────────────────────────────────────────────────────────── */
 
 function pushHistory() {
   const snapshot = {
-    palette:  JSON.parse(JSON.stringify(state.palette)),
-    fonts:    JSON.parse(JSON.stringify(state.fonts)),
-    harmony:  state.harmony,
-    id:       Date.now(),
+    palette: JSON.parse(JSON.stringify(state.palette)),
+    fonts:   JSON.parse(JSON.stringify(state.fonts)),
+    harmony: state.harmony,
+    id:      Date.now(),
   };
-
-  // Add to front
   state.history.unshift(snapshot);
-
-  // Cap at 10
-  if (state.history.length > 10) {
-    state.history.pop();
-  }
-
+  if (state.history.length > 10) state.history.pop();
   renderHistory();
 }
 
@@ -704,12 +689,7 @@ function restoreSnapshot(snapshot) {
   state.fonts    = JSON.parse(JSON.stringify(snapshot.fonts));
   state.harmony  = snapshot.harmony;
   state.hasGenerated = true;
-
-  // Reload fonts
-  if (snapshot.fonts.pair) {
-    loadFontPair(snapshot.fonts.pair);
-  }
-
+  if (snapshot.fonts.pair) loadFontPair(snapshot.fonts.pair);
   renderAll();
   renderHistory(snapshot.id);
 }
@@ -717,63 +697,45 @@ function restoreSnapshot(snapshot) {
 function renderHistory(activeId) {
   const grid  = document.getElementById('historyGrid');
   const count = document.getElementById('historyCount');
-  const empty = document.getElementById('historyEmpty');
-
   count.textContent = `${state.history.length} / 10`;
-
-  if (state.history.length === 0) {
-    grid.innerHTML = '';
-    if (empty) grid.appendChild(empty);
-    return;
-  }
-
+  if (state.history.length === 0) { grid.innerHTML = ''; grid.appendChild(document.getElementById('historyEmpty') || createEmptyEl()); return; }
   grid.innerHTML = '';
-
-  state.history.forEach(snapshot => {
+  state.history.forEach(snap => {
     const card = document.createElement('div');
-    card.className = 'history-card' + (snapshot.id === activeId ? ' active' : '');
+    card.className = 'history-card' + (snap.id === activeId ? ' active' : '');
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
-    card.setAttribute('aria-label', `Restore ${snapshot.harmony} aesthetic with ${snapshot.fonts.heading} and ${snapshot.fonts.body}`);
+    card.setAttribute('aria-label', `Restore ${snap.harmony} palette`);
 
-    // Mini palette strip
     const palette = document.createElement('div');
     palette.className = 'history-palette';
     COLOR_ROLES.forEach(role => {
-      const swatch = document.createElement('div');
-      swatch.className = 'history-swatch';
-      swatch.style.background = snapshot.palette[role].hex;
-      palette.appendChild(swatch);
+      const s = document.createElement('div');
+      s.className = 'history-swatch';
+      s.style.background = snap.palette[role].hex;
+      palette.appendChild(s);
     });
 
-    // Info
     const info = document.createElement('div');
     info.className = 'history-info';
-
-    const fonts = document.createElement('div');
-    fonts.className = 'history-fonts';
-    fonts.textContent = `${snapshot.fonts.heading} / ${snapshot.fonts.body}`;
-
-    const harmony = document.createElement('div');
-    harmony.className = 'history-harmony';
-    harmony.textContent = capitalize(snapshot.harmony);
-
-    info.appendChild(fonts);
-    info.appendChild(harmony);
+    info.innerHTML = `
+      <div class="history-fonts">${snap.fonts.heading || '—'} / ${snap.fonts.body || '—'}</div>
+      <div class="history-harmony">${capitalize(snap.harmony)}</div>`;
 
     card.appendChild(palette);
     card.appendChild(info);
-
-    card.addEventListener('click', () => restoreSnapshot(snapshot));
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        restoreSnapshot(snapshot);
-      }
-    });
-
+    card.addEventListener('click', () => restoreSnapshot(snap));
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); restoreSnapshot(snap); } });
     grid.appendChild(card);
   });
+}
+
+function createEmptyEl() {
+  const p = document.createElement('p');
+  p.className = 'history-empty';
+  p.id        = 'historyEmpty';
+  p.textContent = 'Generate your first aesthetic to see history here.';
+  return p;
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -781,102 +743,78 @@ function renderHistory(activeId) {
 ────────────────────────────────────────────────────────────── */
 
 async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    // Fallback for older browsers
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    const success = document.execCommand('copy');
-    document.body.removeChild(ta);
-    return success;
-  }
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch { const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok; }
 }
 
 async function copyHex(el, hex) {
-  const ok = await copyToClipboard(hex);
-  if (ok) {
-    el.classList.add('copied');
-    const original = el.textContent;
-    el.textContent = 'Copied!';
-    setTimeout(() => {
-      el.textContent = original;
-      el.classList.remove('copied');
-    }, 1500);
-  }
+  if (!await copyToClipboard(hex)) return;
+  el.classList.add('copied');
+  const orig = el.textContent;
+  el.textContent = 'Copied!';
+  setTimeout(() => { el.textContent = orig; el.classList.remove('copied'); }, 1500);
 }
 
 async function copyExport() {
   const code = document.getElementById('exportCodeInner').textContent;
-  const btn  = document.getElementById('copyBtn');
   if (!code || !state.hasGenerated) return;
+  const btn  = document.getElementById('copyBtn');
+  if (!await copyToClipboard(code)) return;
+  btn.classList.add('copied');
+  const span = btn.querySelector('.copy-text');
+  const orig = span.textContent;
+  span.textContent = 'Copied!';
+  setTimeout(() => { span.textContent = orig; btn.classList.remove('copied'); }, 2000);
+}
 
-  const ok = await copyToClipboard(code);
-  if (ok) {
-    btn.classList.add('copied');
-    const span = btn.querySelector('.copy-text');
-    const original = span.textContent;
-    span.textContent = 'Copied!';
-    setTimeout(() => {
-      span.textContent = original;
-      btn.classList.remove('copied');
-    }, 2000);
+/* ──────────────────────────────────────────────────────────────
+   DARK MODE
+────────────────────────────────────────────────────────────── */
+
+function initDarkMode() {
+  const saved = localStorage.getItem('ag-theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+  } else {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
   }
+}
+
+function toggleDarkMode() {
+  const html    = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next    = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('ag-theme', next);
 }
 
 /* ──────────────────────────────────────────────────────────────
    UTILITIES
 ────────────────────────────────────────────────────────────── */
 
-function capitalize(str) {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-/* ──────────────────────────────────────────────────────────────
-   ANIMATION HELPER
-────────────────────────────────────────────────────────────── */
-
-function triggerGenerateAnimation() {
-  const main = document.querySelector('.generator-grid');
-  main.classList.add('generating');
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      main.classList.remove('generating');
-    });
-  });
-}
+function capitalize(str) { return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''; }
 
 /* ──────────────────────────────────────────────────────────────
    EVENT LISTENERS
 ────────────────────────────────────────────────────────────── */
 
 function initEvents() {
-  // Generate button
-  document.getElementById('generateBtn').addEventListener('click', () => {
-    triggerGenerateAnimation();
-    generate();
-  });
+  // Generate
+  document.getElementById('generateBtn').addEventListener('click', generate);
+
+  // Dark mode toggle
+  document.getElementById('themeToggle').addEventListener('click', toggleDarkMode);
 
   // Font lock buttons
   document.querySelectorAll('.lock-btn[data-lock]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      toggleFontLock(btn.dataset.lock);
-    });
+    btn.addEventListener('click', () => toggleFontLock(btn.dataset.lock));
   });
 
-  // Export tab switcher
+  // Export tabs
   document.querySelectorAll('.export-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.export-tab').forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
+      document.querySelectorAll('.export-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
       tab.classList.add('active');
       tab.setAttribute('aria-selected', 'true');
       state.activeTab = tab.dataset.tab;
@@ -884,14 +822,62 @@ function initEvents() {
     });
   });
 
-  // Copy export button
+  // Copy export
   document.getElementById('copyBtn').addEventListener('click', copyExport);
 
-  // Keyboard: spacebar on Generate
-  document.addEventListener('keydown', (e) => {
-    if (e.key === ' ' && e.target === document.body) {
+  // Harmony mode chips
+  document.getElementById('harmonyChips').addEventListener('click', e => {
+    const chip = e.target.closest('.mode-chip');
+    if (!chip) return;
+    document.querySelectorAll('#harmonyChips .mode-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    state.harmonyMode = chip.dataset.harmony;
+  });
+
+  // Font mode chips
+  document.getElementById('fontModeChips').addEventListener('click', e => {
+    const chip = e.target.closest('.mode-chip');
+    if (!chip) return;
+    document.querySelectorAll('#fontModeChips .mode-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    state.fontMode = chip.dataset.fontmode;
+  });
+
+  // Color picker: close button
+  document.getElementById('pickerClose').addEventListener('click', closeColorPicker);
+
+  // Color picker: backdrop click
+  document.getElementById('pickerBackdrop').addEventListener('click', closeColorPicker);
+
+  // Color picker: native color input
+  document.getElementById('pickerNativeInput').addEventListener('input', e => {
+    const role = state.picker.role;
+    if (!role) return;
+    applyPickerColor(role, e.target.value);
+  });
+
+  // Color picker: saturation slider
+  document.getElementById('pickerSaturation').addEventListener('input', () => {
+    if (state.picker.role) applySliderChange(state.picker.role);
+  });
+
+  // Color picker: lightness slider
+  document.getElementById('pickerLightness').addEventListener('input', () => {
+    if (state.picker.role) applySliderChange(state.picker.role);
+  });
+
+  // Color picker: harmonize button
+  document.getElementById('pickerHarmonizeBtn').addEventListener('click', harmonizeFromPickedColor);
+
+  // Close picker on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && state.picker.isOpen) closeColorPicker();
+  });
+
+  // Keyboard: Space on body = generate
+  document.addEventListener('keydown', e => {
+    if (e.key === ' ' && e.target === document.body && !state.picker.isOpen) {
       e.preventDefault();
-      triggerGenerateAnimation();
       generate();
     }
   });
@@ -902,9 +888,9 @@ function initEvents() {
 ────────────────────────────────────────────────────────────── */
 
 function init() {
+  initDarkMode();
   initEvents();
-  // Auto-generate on first load for instant visual impact
-  generate();
+  generate(); // auto-generate on first load
 }
 
 document.addEventListener('DOMContentLoaded', init);

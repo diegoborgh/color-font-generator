@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aesthetic Generator — Color Palettes &amp; Font Pairings</title>
   <meta name="description" content="Generate cohesive color palettes and font pairings with one click. Export as CSS variables, Tailwind config, or JSON." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
@@ -12,31 +13,56 @@
 </head>
 <body>
 
-  <!-- App Header -->
+  <!-- ── Header ─────────────────────────────────────────────── -->
   <header class="app-header">
     <div class="header-inner">
+
+      <!-- Logo -->
       <div class="app-brand">
-        <h1 class="app-title">Aesthetic<br />Generator</h1>
-        <p class="app-subtitle">Color palettes &amp; font pairings for your next project</p>
+        <div class="brand-icon" id="brandIcon" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="40" height="40" fill="none">
+            <rect width="32" height="32" rx="9" class="brand-bg"/>
+            <rect class="bs0" x="2.5"  y="5.5" width="5" height="21" rx="2.5"/>
+            <rect class="bs1" x="9"    y="5.5" width="5" height="21" rx="2.5"/>
+            <rect class="bs2" x="15.5" y="5.5" width="5" height="21" rx="2.5"/>
+            <rect class="bs3" x="22"   y="5.5" width="5" height="21" rx="2.5"/>
+            <rect class="bs4" x="28"   y="5.5" width="2" height="21" rx="1"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-eyebrow">Generator</span>
+          <h1 class="app-title">Aesthetic</h1>
+        </div>
       </div>
-      <button class="btn-generate" id="generateBtn" aria-label="Generate new aesthetic">
-        <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-          <path d="M21 3v5h-5"/>
-          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-          <path d="M8 16H3v5"/>
-        </svg>
-        Generate
-      </button>
+
+      <!-- Header controls -->
+      <div class="header-controls">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+          <!-- Sun (shown in dark mode) -->
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <!-- Moon (shown in light mode) -->
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="btn-generate" id="generateBtn" aria-label="Generate new aesthetic">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
+          </svg>
+          Generate
+        </button>
+      </div>
+
     </div>
   </header>
 
+  <!-- ── Main ───────────────────────────────────────────────── -->
   <main class="app-main">
-
-    <!-- Generator Grid: Left (palette+fonts+a11y) + Right (preview) -->
     <div class="generator-grid">
 
-      <!-- LEFT COLUMN -->
+      <!-- ── LEFT COLUMN ──────────────────────────────────── -->
       <div class="generator-left">
 
         <!-- Color Palette -->
@@ -45,12 +71,18 @@
             <h2 class="section-title">Color Palette</h2>
             <span class="harmony-badge" id="harmonyBadge">—</span>
           </div>
-          <div class="palette-grid" id="paletteGrid">
-            <!-- Swatches injected by JS -->
+
+          <!-- Harmony mode chips -->
+          <div class="mode-chips" role="group" aria-label="Harmony mode" id="harmonyChips">
+            <button class="mode-chip active" data-harmony="random">Random</button>
+            <button class="mode-chip" data-harmony="complementary">Complementary</button>
+            <button class="mode-chip" data-harmony="analogous">Analogous</button>
+            <button class="mode-chip" data-harmony="triadic">Triadic</button>
+            <button class="mode-chip" data-harmony="split-complementary">Split-Comp</button>
           </div>
-          <div class="palette-hex-row" id="paletteHexRow">
-            <!-- Hex values injected by JS -->
-          </div>
+
+          <div class="palette-grid" id="paletteGrid"></div>
+          <div class="palette-hex-row" id="paletteHexRow"></div>
         </section>
 
         <!-- Font Pairing -->
@@ -59,20 +91,23 @@
             <h2 class="section-title">Font Pairing</h2>
             <span class="pair-category" id="pairCategory">—</span>
           </div>
+
+          <!-- Font style mode chips -->
+          <div class="mode-chips" role="group" aria-label="Font style" id="fontModeChips">
+            <button class="mode-chip active" data-fontmode="random">Random</button>
+            <button class="mode-chip" data-fontmode="serif">Serif</button>
+            <button class="mode-chip" data-fontmode="sans">Sans / Geo</button>
+            <button class="mode-chip" data-fontmode="display">Display</button>
+          </div>
+
           <div class="font-pairs" id="fontPairs">
 
-            <!-- Heading Font -->
-            <div class="font-item" id="fontItemHeading">
+            <!-- Heading -->
+            <div class="font-item">
               <div class="font-item-meta">
                 <button class="lock-btn" data-lock="heading" aria-label="Lock heading font" aria-pressed="false">
-                  <svg class="lock-icon unlock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-                  </svg>
-                  <svg class="lock-icon locked-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                  </svg>
+                  <svg class="lock-icon unlock-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                  <svg class="lock-icon locked-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </button>
                 <div class="font-info">
                   <span class="font-role">Heading</span>
@@ -84,20 +119,14 @@
               </div>
             </div>
 
-            <div class="font-divider" aria-hidden="true"></div>
+            <div class="font-divider"></div>
 
-            <!-- Body Font -->
-            <div class="font-item" id="fontItemBody">
+            <!-- Body -->
+            <div class="font-item">
               <div class="font-item-meta">
                 <button class="lock-btn" data-lock="body" aria-label="Lock body font" aria-pressed="false">
-                  <svg class="lock-icon unlock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-                  </svg>
-                  <svg class="lock-icon locked-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                  </svg>
+                  <svg class="lock-icon unlock-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                  <svg class="lock-icon locked-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </button>
                 <div class="font-info">
                   <span class="font-role">Body</span>
@@ -112,54 +141,68 @@
           </div>
         </section>
 
-        <!-- Accessibility Score -->
-        <section class="section-card a11y-card" aria-label="Accessibility contrast check">
+        <!-- Accessibility -->
+        <section class="section-card" aria-label="Accessibility contrast check">
           <div class="section-header">
             <h2 class="section-title">Accessibility</h2>
           </div>
           <div class="a11y-content">
             <div class="contrast-visual">
               <div class="contrast-swatches">
-                <div class="contrast-swatch contrast-swatch--bg" id="contrastBgSwatch" aria-label="Background color"></div>
-                <div class="contrast-swatch contrast-swatch--text" id="contrastTextSwatch" aria-label="Text color"></div>
+                <div class="contrast-swatch" id="contrastBgSwatch"></div>
+                <div class="contrast-swatch" id="contrastTextSwatch"></div>
               </div>
               <div class="contrast-score">
                 <span class="contrast-ratio" id="contrastRatio">—</span>
                 <span class="contrast-ratio-label">:1 ratio</span>
               </div>
             </div>
-            <div class="wcag-badges" id="wcagBadges">
-              <span class="wcag-badge" id="badgeAA" data-level="AA">AA</span>
-              <span class="wcag-badge" id="badgeAAA" data-level="AAA">AAA</span>
-              <span class="wcag-badge" id="badgeLarge" data-level="AA Large">AA Large</span>
+            <div class="wcag-badges">
+              <span class="wcag-badge" id="badgeAA">AA</span>
+              <span class="wcag-badge" id="badgeAAA">AAA</span>
+              <span class="wcag-badge" id="badgeLarge">AA Large</span>
             </div>
             <p class="a11y-note">Text color against Background — WCAG 2.1</p>
           </div>
         </section>
 
       </div>
+      <!-- /generator-left -->
 
-      <!-- RIGHT COLUMN: Live Preview -->
+      <!-- ── RIGHT COLUMN: Live Preview ───────────────────── -->
       <div class="generator-right">
         <section class="section-card preview-wrapper" aria-label="Live preview">
           <div class="section-header">
             <h2 class="section-title">Live Preview</h2>
+            <span class="preview-hint">Hover buttons to interact</span>
           </div>
           <div class="preview-stage" id="previewStage">
             <div class="preview-card" id="previewCard">
-              <div class="preview-card-body">
+
+              <!-- Card header band: secondary color -->
+              <div class="preview-card-band" id="previewBand">
                 <span class="preview-tag" id="previewTag">Design System</span>
+                <div class="preview-band-dots" id="previewBandDots" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+
+              <!-- Card body -->
+              <div class="preview-card-body">
                 <h3 class="preview-heading" id="previewHeading">Craft Beautiful Interfaces</h3>
                 <p class="preview-para" id="previewPara">A cohesive visual language that brings harmony to every element of your product. Start with strong foundations.</p>
                 <div class="preview-actions">
                   <button class="preview-btn preview-btn--primary" id="previewBtnPrimary">Get Started</button>
-                  <button class="preview-btn preview-btn--ghost" id="previewBtnGhost">Learn More</button>
+                  <button class="preview-btn preview-btn--ghost" id="previewBtnGhost">Learn More →</button>
                 </div>
               </div>
+
+              <!-- Card footer: accent -->
               <div class="preview-card-footer" id="previewCardFooter">
                 <span class="preview-dot" id="previewDot"></span>
-                <span class="preview-footer-text">Generated Aesthetic</span>
+                <span>Generated Aesthetic</span>
               </div>
+
             </div>
           </div>
         </section>
@@ -168,29 +211,26 @@
     </div>
     <!-- /generator-grid -->
 
-    <!-- Export Section -->
+    <!-- ── Export ─────────────────────────────────────────── -->
     <section class="section-card export-section" aria-label="Export options">
       <div class="section-header">
         <h2 class="section-title">Export</h2>
       </div>
       <div class="export-tabs" role="tablist" aria-label="Export format">
-        <button class="export-tab active" role="tab" data-tab="css" aria-selected="true" id="tab-css">CSS Variables</button>
-        <button class="export-tab" role="tab" data-tab="tailwind" aria-selected="false" id="tab-tailwind">Tailwind Config</button>
-        <button class="export-tab" role="tab" data-tab="json" aria-selected="false" id="tab-json">JSON</button>
+        <button class="export-tab active" role="tab" data-tab="css"      aria-selected="true">CSS Variables</button>
+        <button class="export-tab"        role="tab" data-tab="tailwind" aria-selected="false">Tailwind Config</button>
+        <button class="export-tab"        role="tab" data-tab="json"     aria-selected="false">JSON</button>
       </div>
       <div class="export-body">
-        <pre class="export-code" id="exportCode" aria-live="polite" aria-label="Export code output"><code id="exportCodeInner">Generate an aesthetic to see export options.</code></pre>
-        <button class="btn-copy" id="copyBtn" aria-label="Copy code to clipboard" disabled>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-          </svg>
+        <pre class="export-code" id="exportCode" aria-live="polite"><code id="exportCodeInner">Generate an aesthetic to see export options.</code></pre>
+        <button class="btn-copy" id="copyBtn" aria-label="Copy to clipboard" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           <span class="copy-text">Copy</span>
         </button>
       </div>
     </section>
 
-    <!-- History -->
+    <!-- ── History ────────────────────────────────────────── -->
     <section class="history-section" aria-label="Session history">
       <div class="history-header">
         <h2 class="section-title">History</h2>
@@ -206,6 +246,48 @@
   <footer class="app-footer">
     <p>Built with color theory &amp; typographic logic &mdash; pure HTML, CSS &amp; JS.</p>
   </footer>
+
+  <!-- ── Color Picker Popover ───────────────────────────── -->
+  <div class="color-picker-popover" id="colorPickerPopover" role="dialog" aria-modal="false" aria-label="Edit color" aria-hidden="true">
+    <div class="picker-header">
+      <div class="picker-title-row">
+        <span class="picker-role-label" id="pickerRoleLabel">Primary</span>
+        <code class="picker-hex-badge" id="pickerHexBadge">#000000</code>
+      </div>
+      <button class="picker-close" id="pickerClose" aria-label="Close color editor">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="picker-body">
+      <div class="picker-color-row">
+        <div class="picker-preview-swatch" id="pickerPreviewSwatch"></div>
+        <label class="picker-native-label" aria-label="Pick a color">
+          <input type="color" class="picker-native-input" id="pickerNativeInput" />
+          <span class="picker-native-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            Pick Color
+          </span>
+        </label>
+      </div>
+      <div class="picker-sliders">
+        <div class="picker-slider-row">
+          <label class="picker-slider-label" for="pickerSaturation">S</label>
+          <input type="range" class="picker-slider" id="pickerSaturation" min="0" max="100" step="1" />
+          <span class="picker-slider-val" id="pickerSatVal">50</span>
+        </div>
+        <div class="picker-slider-row">
+          <label class="picker-slider-label" for="pickerLightness">L</label>
+          <input type="range" class="picker-slider" id="pickerLightness" min="0" max="100" step="1" />
+          <span class="picker-slider-val" id="pickerLightVal">50</span>
+        </div>
+      </div>
+      <button class="picker-harmonize-btn" id="pickerHarmonizeBtn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        Regenerate Others from This Hue
+      </button>
+    </div>
+  </div>
+  <div class="picker-backdrop" id="pickerBackdrop"></div>
 
   <script src="script.js"></script>
 </body>
