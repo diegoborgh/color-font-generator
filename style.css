@@ -475,12 +475,37 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
 /* ── Preview Stage ───────────────────────────────────────────── */
 .preview-wrapper { padding: 20px; }
 
+.preview-header-controls { display: flex; align-items: center; gap: 8px; }
+
 .preview-hint {
   font-size: 10px;
   color: var(--text-secondary);
   font-style: italic;
   flex-shrink: 0;
 }
+
+.preview-dark-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+.preview-dark-toggle:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.preview-dark-toggle[aria-pressed="true"] { background: var(--text-primary); color: var(--app-bg); border-color: var(--text-primary); }
+
+/* Moon icon shown when not in dark mode, sun when in dark mode */
+.preview-dark-icon-sun { display: none; }
+.preview-dark-toggle[aria-pressed="true"] .preview-dark-icon-moon { display: none; }
+.preview-dark-toggle[aria-pressed="true"] .preview-dark-icon-sun  { display: block; }
 
 .preview-stage {
   background: var(--app-bg);
@@ -492,6 +517,10 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
   justify-content: center;
   min-height: 360px;
   transition: background var(--transition), border-color var(--transition);
+}
+.preview-stage[data-preview-dark] {
+  background: #0c0c12;
+  border-color: rgba(255,255,255,0.08);
 }
 
 .preview-card {
@@ -654,6 +683,23 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
 .history-section { display: flex; flex-direction: column; gap: 14px; }
 .history-header  { display: flex; align-items: center; gap: 12px; }
 .history-count   { font-size: 11px; color: var(--text-secondary); font-weight: 500; font-variant-numeric: tabular-nums; }
+.btn-clear-history {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+.btn-clear-history:hover:not(:disabled) { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.35); color: #f87171; }
+.btn-clear-history:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .history-empty {
   font-size: 13px;
@@ -831,7 +877,14 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
   cursor: pointer;
   border: none;
 }
-.picker-slider-val { font-size: 10px; color: var(--text-secondary); font-variant-numeric: tabular-nums; width: 24px; text-align: right; flex-shrink: 0; }
+.picker-slider--hue {
+  background: linear-gradient(to right,
+    hsl(0,100%,50%), hsl(30,100%,50%), hsl(60,100%,50%), hsl(90,100%,50%),
+    hsl(120,100%,50%), hsl(150,100%,50%), hsl(180,100%,50%), hsl(210,100%,50%),
+    hsl(240,100%,50%), hsl(270,100%,50%), hsl(300,100%,50%), hsl(330,100%,50%),
+    hsl(360,100%,50%)) !important;
+}
+.picker-slider-val { font-size: 10px; color: var(--text-secondary); font-variant-numeric: tabular-nums; width: 28px; text-align: right; flex-shrink: 0; }
 
 .picker-harmonize-btn {
   display: flex;

@@ -34,8 +34,41 @@ const FONT_PAIRS = [
   { heading: 'Syne',             hw: '600;800', body: 'Outfit',        bw: '400;500', category: 'Display + Geometric', type: 'sans'    },
   { heading: 'Plus Jakarta Sans',hw: '500;700', body: 'Lora',          bw: '400',     category: 'Humanist + Serif',    type: 'sans'    },
   { heading: 'Fjalla One',       hw: '400',     body: 'Cantarell',     bw: '400;700', category: 'Condensed + Humanist',type: 'sans'    },
-  { heading: 'Cormorant Garamond',hw:'600;700', body: 'Raleway',       bw: '400;500', category: 'Display + Geometric', type: 'display' },
-  { heading: 'Abril Fatface',    hw: '400',     body: 'Lato',          bw: '400;500', category: 'Display + Humanist',  type: 'display' },
+  { heading: 'Cormorant Garamond',hw:'600;700', body: 'Raleway',       bw: '400;500', category: 'Display + Geometric',      type: 'display' },
+  { heading: 'Abril Fatface',    hw: '400',     body: 'Lato',          bw: '400;500', category: 'Display + Humanist',       type: 'display' },
+  // Serif (+14)
+  { heading: 'EB Garamond',        hw: '400;700', body: 'Nunito Sans',    bw: '400;600', category: 'Classic + Humanist',       type: 'serif'   },
+  { heading: 'Crimson Pro',        hw: '400;600', body: 'Work Sans',      bw: '400;500', category: 'Serif + Grotesque',         type: 'serif'   },
+  { heading: 'Bodoni Moda',        hw: '400;700', body: 'Jost',           bw: '400;500', category: 'High Contrast + Geometric', type: 'serif'   },
+  { heading: 'Alegreya',           hw: '400;700', body: 'Alegreya Sans',  bw: '400;500', category: 'Humanist Serif + Sans',     type: 'serif'   },
+  { heading: 'Vollkorn',           hw: '400;700', body: 'Mulish',         bw: '400;500', category: 'Robust Serif + Geometric',  type: 'serif'   },
+  { heading: 'Bitter',             hw: '400;700', body: 'Hind',           bw: '400;500', category: 'Slab Serif + Humanist',     type: 'serif'   },
+  { heading: 'Arvo',               hw: '400;700', body: 'PT Sans',        bw: '400;700', category: 'Slab Serif + Humanist',     type: 'serif'   },
+  { heading: 'Zilla Slab',         hw: '400;600', body: 'Asap',           bw: '400;500', category: 'Slab Serif + Grotesque',    type: 'serif'   },
+  { heading: 'Domine',             hw: '400;700', body: 'Cabin',          bw: '400;600', category: 'Serif + Humanist',          type: 'serif'   },
+  { heading: 'Cormorant',          hw: '400;700', body: 'Proza Libre',    bw: '400;500', category: 'Display Serif + Humanist',  type: 'serif'   },
+  { heading: 'Cardo',              hw: '400;700', body: 'Fira Sans',      bw: '400;500', category: 'Classical + Sans',          type: 'serif'   },
+  { heading: 'Neuton',             hw: '400;700', body: 'Oxygen',         bw: '400;700', category: 'Transitional + Humanist',   type: 'serif'   },
+  { heading: 'Noto Serif',         hw: '400;700', body: 'Noto Sans',      bw: '400;500', category: 'Universal Serif + Sans',    type: 'serif'   },
+  { heading: 'Rokkitt',            hw: '400;700', body: 'Rubik',          bw: '400;500', category: 'Slab Serif + Rounded',      type: 'serif'   },
+  // Sans (+12)
+  { heading: 'Raleway',            hw: '500;700', body: 'PT Serif',       bw: '400;700', category: 'Elegant + Serif',           type: 'sans'    },
+  { heading: 'Work Sans',          hw: '500;700', body: 'Playfair Display',bw: '400;700', category: 'Grotesque + Serif',        type: 'sans'    },
+  { heading: 'Nunito',             hw: '600;800', body: 'Lora',           bw: '400',     category: 'Rounded + Serif',           type: 'sans'    },
+  { heading: 'Rubik',              hw: '500;700', body: 'Source Serif 4', bw: '400;600', category: 'Rounded + Serif',           type: 'sans'    },
+  { heading: 'Barlow',             hw: '500;700', body: 'EB Garamond',    bw: '400;600', category: 'Condensed + Classic',       type: 'sans'    },
+  { heading: 'Outfit',             hw: '500;700', body: 'Bitter',         bw: '400',     category: 'Geometric + Slab',          type: 'sans'    },
+  { heading: 'Manrope',            hw: '500;700', body: 'Crimson Text',   bw: '400;600', category: 'Humanist + Serif',          type: 'sans'    },
+  { heading: 'DM Sans',            hw: '500;700', body: 'Spectral',       bw: '400;600', category: 'Geometric + Serif',         type: 'sans'    },
+  { heading: 'Mulish',             hw: '500;700', body: 'Merriweather',   bw: '400',     category: 'Geometric + Serif',         type: 'sans'    },
+  { heading: 'Exo 2',              hw: '500;700', body: 'Noto Serif',     bw: '400',     category: 'Technical + Serif',         type: 'sans'    },
+  { heading: 'Lexend',             hw: '500;700', body: 'Vollkorn',       bw: '400;600', category: 'Readable + Serif',          type: 'sans'    },
+  { heading: 'Urbanist',           hw: '500;700', body: 'Lora',           bw: '400;600', category: 'Geometric + Serif',         type: 'sans'    },
+  // Display (+4)
+  { heading: 'Yeseva One',         hw: '400',     body: 'Josefin Sans',   bw: '400;600', category: 'Display + Geometric',       type: 'display' },
+  { heading: 'Playfair Display SC',hw: '400;700', body: 'Source Sans 3',  bw: '400;500', category: 'Small Caps + Geometric',    type: 'display' },
+  { heading: 'Righteous',          hw: '400',     body: 'Hind',           bw: '400;500', category: 'Display + Humanist',         type: 'display' },
+  { heading: 'Philosopher',        hw: '400;700', body: 'Nunito',         bw: '400;600', category: 'Display Serif + Rounded',    type: 'display' },
 ];
 
 /* ──────────────────────────────────────────────────────────────
@@ -58,6 +91,7 @@ const state = {
   activeTab:    'css',
   history:      [],
   hasGenerated: false,
+  previewDark:  false,
   // Color picker
   picker: { isOpen: false, role: null },
 };
@@ -398,12 +432,21 @@ function renderPreview() {
   const p           = state.palette;
   const headingFont = state.fonts.heading || 'serif';
   const bodyFont    = state.fonts.body    || 'sans-serif';
+  const dark        = state.previewDark;
 
-  // Card background = palette background
+  // Derive dark-mode card colors from palette hues
+  const bgHsl       = hexToHsl(p.background.hex);
+  const darkCardBg  = hslToHex(bgHsl.h, Math.round(bgHsl.s * 0.5), 11);
+  const lightText   = hslToHex(bgHsl.h, 15, 88);
+
+  // Stage dark-mode attribute
+  document.getElementById('previewStage').toggleAttribute('data-preview-dark', dark);
+
+  // Card background
   const card = document.getElementById('previewCard');
-  card.style.background = p.background.hex;
+  card.style.background = dark ? darkCardBg : p.background.hex;
 
-  // Band: secondary color is prominently featured here
+  // Band: secondary color
   const band = document.getElementById('previewBand');
   band.style.background = p.secondary.hex;
   band.style.color      = getContrastColor(p.secondary.hex);
@@ -411,12 +454,12 @@ function renderPreview() {
   // Heading
   const heading = document.getElementById('previewHeading');
   heading.style.fontFamily = `'${headingFont}', serif`;
-  heading.style.color      = p.text.hex;
+  heading.style.color      = dark ? lightText : p.text.hex;
 
   // Paragraph
   const para = document.getElementById('previewPara');
   para.style.fontFamily = `'${bodyFont}', sans-serif`;
-  para.style.color      = hexWithAlpha(p.text.hex, 0.7);
+  para.style.color      = dark ? hexWithAlpha(lightText, 0.65) : hexWithAlpha(p.text.hex, 0.7);
 
   // Primary button
   const btnPrimary = document.getElementById('previewBtnPrimary');
@@ -434,11 +477,19 @@ function renderPreview() {
 
   // Footer: accent tint
   const footer = document.getElementById('previewCardFooter');
-  footer.style.background = hexWithAlpha(p.accent.hex, 0.08);
-  footer.style.color      = hexWithAlpha(p.text.hex, 0.5);
+  footer.style.background  = dark ? hexWithAlpha(p.accent.hex, 0.12) : hexWithAlpha(p.accent.hex, 0.08);
+  footer.style.color       = dark ? hexWithAlpha(lightText, 0.45) : hexWithAlpha(p.text.hex, 0.5);
+  footer.style.borderTop   = dark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.07)';
 
   const dot = document.getElementById('previewDot');
   dot.style.background = p.accent.hex;
+}
+
+function togglePreviewDark() {
+  state.previewDark = !state.previewDark;
+  const btn = document.getElementById('previewDarkToggle');
+  btn.setAttribute('aria-pressed', String(state.previewDark));
+  if (state.hasGenerated) renderPreview();
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -625,8 +676,10 @@ function syncPickerToState(role) {
   document.getElementById('pickerHexBadge').textContent     = color.hex.toUpperCase();
   document.getElementById('pickerPreviewSwatch').style.background = color.hex;
   document.getElementById('pickerNativeInput').value        = color.hex;
+  document.getElementById('pickerHue').value                = Math.round(color.h);
   document.getElementById('pickerSaturation').value         = Math.round(color.s);
   document.getElementById('pickerLightness').value          = Math.round(color.l);
+  document.getElementById('pickerHueVal').textContent       = Math.round(color.h) + '°';
   document.getElementById('pickerSatVal').textContent       = Math.round(color.s) + '%';
   document.getElementById('pickerLightVal').textContent     = Math.round(color.l) + '%';
 }
@@ -640,14 +693,15 @@ function applyPickerColor(role, hex) {
 }
 
 function applySliderChange(role) {
+  const h = parseFloat(document.getElementById('pickerHue').value);
   const s = parseFloat(document.getElementById('pickerSaturation').value);
   const l = parseFloat(document.getElementById('pickerLightness').value);
-  const h = state.palette[role].h;
   state.palette[role] = makeColor(h, s, l);
   const hex = state.palette[role].hex;
   document.getElementById('pickerPreviewSwatch').style.background = hex;
   document.getElementById('pickerHexBadge').textContent           = hex.toUpperCase();
   document.getElementById('pickerNativeInput').value              = hex;
+  document.getElementById('pickerHueVal').textContent             = Math.round(h) + '°';
   document.getElementById('pickerSatVal').textContent             = Math.round(s) + '%';
   document.getElementById('pickerLightVal').textContent           = Math.round(l) + '%';
   renderAll();
@@ -694,10 +748,17 @@ function restoreSnapshot(snapshot) {
   renderHistory(snapshot.id);
 }
 
+function clearHistory() {
+  state.history = [];
+  renderHistory();
+}
+
 function renderHistory(activeId) {
   const grid  = document.getElementById('historyGrid');
   const count = document.getElementById('historyCount');
+  const clearBtn = document.getElementById('clearHistoryBtn');
   count.textContent = `${state.history.length} / 10`;
+  if (clearBtn) clearBtn.disabled = state.history.length === 0;
   if (state.history.length === 0) { grid.innerHTML = ''; grid.appendChild(document.getElementById('historyEmpty') || createEmptyEl()); return; }
   grid.innerHTML = '';
   state.history.forEach(snap => {
@@ -824,6 +885,8 @@ function initEvents() {
 
   // Copy export
   document.getElementById('copyBtn').addEventListener('click', copyExport);
+  document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+  document.getElementById('previewDarkToggle').addEventListener('click', togglePreviewDark);
 
   // Harmony mode chips
   document.getElementById('harmonyChips').addEventListener('click', e => {
@@ -854,6 +917,11 @@ function initEvents() {
     const role = state.picker.role;
     if (!role) return;
     applyPickerColor(role, e.target.value);
+  });
+
+  // Color picker: hue slider
+  document.getElementById('pickerHue').addEventListener('input', () => {
+    if (state.picker.role) applySliderChange(state.picker.role);
   });
 
   // Color picker: saturation slider
