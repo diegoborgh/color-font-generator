@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aesthetic Generator — Color Palettes &amp; Font Pairings</title>
-  <meta name="description" content="Generate cohesive color palettes and font pairings with one click. Export as CSS variables, Tailwind config, or JSON." />
+  <title>Kern &amp; Hue — Color Palettes &amp; Font Pairings</title>
+  <meta name="description" content="Generating harmony through the golden ratio and color science. Cohesive color palettes and font pairings — export as CSS variables, Tailwind config, or JSON." />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;1,300;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -20,19 +20,15 @@
       <!-- Logo -->
       <div class="app-brand">
         <div class="brand-icon" id="brandIcon" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="40" height="40" fill="none">
-            <rect width="32" height="32" rx="9" class="brand-bg"/>
-            <rect class="bs0" x="2.5"  y="5.5" width="5" height="21" rx="2.5"/>
-            <rect class="bs1" x="9"    y="5.5" width="5" height="21" rx="2.5"/>
-            <rect class="bs2" x="15.5" y="5.5" width="5" height="21" rx="2.5"/>
-            <rect class="bs3" x="22"   y="5.5" width="5" height="21" rx="2.5"/>
-            <rect class="bs4" x="28"   y="5.5" width="2" height="21" rx="1"/>
+          <svg viewBox="0 0 40 32" width="40" height="32" fill="none">
+            <circle class="brand-circle-k" cx="13" cy="16" r="12.5"/>
+            <circle class="brand-circle-h" cx="27" cy="16" r="12.5"/>
+            <text x="11" y="20.5" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="'Inter', sans-serif">K</text>
+            <text x="29" y="20.5" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" font-family="'Inter', sans-serif">H</text>
           </svg>
         </div>
-        <div class="brand-text">
-          <span class="brand-eyebrow">Generator</span>
-          <h1 class="app-title">Aesthetic</h1>
-        </div>
+        <h1 class="app-title">Kern <span class="brand-amp">&amp;</span> Hue</h1>
+        <span class="brand-tagline">Generating harmony through the golden ratio and color science.</span>
       </div>
 
       <!-- Header controls -->
@@ -252,7 +248,7 @@
   </main>
 
   <footer class="app-footer">
-    <p>Built with color theory &amp; typographic logic &mdash; pure HTML, CSS &amp; JS.</p>
+    <p>Kern &amp; Hue &mdash; built with color theory &amp; typographic logic.</p>
   </footer>
 
   <!-- ── Color Picker Popover ───────────────────────────── -->

@@ -584,27 +584,15 @@ function renderAll() {
 ────────────────────────────────────────────────────────────── */
 
 function updateBrandIcon() {
-  const p = state.palette;
-  const icon = document.getElementById('brandIcon');
-  if (!icon) return;
-  const colors = [p.primary.hex, p.secondary.hex, p.accent.hex, p.background.hex, p.text.hex];
-  const classes = ['bs0', 'bs1', 'bs2', 'bs3', 'bs4'];
-  classes.forEach((cls, i) => {
-    const el = icon.querySelector(`.${cls}`);
-    if (el) el.style.fill = colors[i];
-  });
+  // Brand colors are fixed — no dynamic updates needed
 }
 
 function updateFavicon() {
-  const p = state.palette;
-  const cols = [p.primary.hex, p.secondary.hex, p.accent.hex, p.background.hex, p.text.hex];
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-    <rect width="32" height="32" rx="8" fill="${cols[3]}"/>
-    <rect x="2.5" y="5"  width="5" height="22" rx="2.2" fill="${cols[0]}"/>
-    <rect x="9"   y="5"  width="5" height="22" rx="2.2" fill="${cols[1]}"/>
-    <rect x="15.5" y="5" width="5" height="22" rx="2.2" fill="${cols[2]}"/>
-    <rect x="22"  y="5"  width="5" height="22" rx="2.2" fill="${cols[4]}"/>
-    <rect x="28"  y="5"  width="2" height="22" rx="1"   fill="${cols[0]}"/>
+    <circle cx="11" cy="16" r="11" fill="#D4566A"/>
+    <circle cx="21" cy="16" r="11" fill="#2D3748"/>
+    <text x="9.5" y="20" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="sans-serif">K</text>
+    <text x="22.5" y="20" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="sans-serif">H</text>
   </svg>`;
   let link = document.querySelector('link[rel="icon"]');
   if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
