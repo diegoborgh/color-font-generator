@@ -93,7 +93,7 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
 .app-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 16px var(--pad-page);
+  padding: 16px 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -102,8 +102,10 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
 }
 
 .header-inner {
+  width: 100%;
   max-width: var(--max-w);
   margin: 0 auto;
+  padding: 0 var(--pad-page);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -119,6 +121,7 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
   color: inherit;
   flex-shrink: 0;
   min-width: 0;
+  margin-left: 5px;
 }
 
 .brand-icon {
@@ -139,7 +142,7 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
 .app-title {
   font-family: 'Playfair Display', Georgia, serif;
   font-style: normal;
-  font-size: clamp(20px, 2.8vw, 26px);
+  font-size: 26px;
   font-weight: 400;
   letter-spacing: -0.01em;
   color: #2D3748;
@@ -217,6 +220,8 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
 }
 .btn-generate:hover { background: #2d2d2d; box-shadow: var(--shadow-md); }
 [data-theme="dark"] .btn-generate:hover { background: #e0e0e0; }
+[data-theme="dark"] .app-title { color: #E8E8ED; }
+[data-theme="dark"] .brand-tagline { color: #E8E8ED; }
 .btn-generate:active { transform: scale(0.97); }
 
 /* ── Main Layout ─────────────────────────────────────────────── */
@@ -918,14 +923,13 @@ pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, mono
   .generator-grid { grid-template-columns: 1fr; }
   .generator-right { position: static; }
   .preview-stage { min-height: 280px; }
+  .brand-tagline { display: none; }
 }
 
 /* ── Responsive: Mobile ──────────────────────────────────────── */
 @media (max-width: 600px) {
   :root { --pad-page: 14px; }
 
-  .app-title { font-size: 20px; }
-  .brand-tagline { display: none; }
 
   .header-controls { gap: 8px; }
   .btn-generate { padding: 8px 13px; font-size: 12px; }
