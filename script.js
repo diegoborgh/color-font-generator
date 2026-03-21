@@ -556,6 +556,9 @@ function buildFullPageHTML() {
       --secondary-quote:    ${hexWithAlpha(p.secondary.hex, 0.16)};
       --footer-dark-bg:     ${darkText};
       --footer-dark-text:   ${darkBg};
+      --nav-bg:             ${p.text.hex};
+      --nav-bg-dark:        ${darkText};
+      --nav-text:           ${getContrastColor(p.text.hex)};
     }
 
     body {
@@ -569,6 +572,7 @@ function buildFullPageHTML() {
       background: var(--dark-bg);
       color: var(--dark-text);
     }
+    body.dark nav { background: var(--dark-bg); color: var(--dark-text); }
 
     /* NAV */
     nav {
@@ -578,7 +582,8 @@ function buildFullPageHTML() {
       border-bottom: 1px solid var(--border-subtle);
       position: sticky;
       top: 0;
-      background: inherit;
+      background: var(--nav-bg);
+      color: var(--nav-text);
       backdrop-filter: blur(8px);
       z-index: 100;
       gap: 1rem;
@@ -1070,6 +1075,9 @@ function pushPreviewUpdate() {
       '--secondary-quote':    hexWithAlpha(p.secondary.hex, 0.16),
       '--footer-dark-bg':     darkText,
       '--footer-dark-text':   darkBg,
+      '--nav-bg':             p.text.hex,
+      '--nav-bg-dark':        darkText,
+      '--nav-text':           getContrastColor(p.text.hex),
     },
     googleFontsUrl: pair ? buildGoogleFontsUrl(pair) : '',
   }, '*');
