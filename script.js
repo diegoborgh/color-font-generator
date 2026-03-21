@@ -90,11 +90,25 @@ const state = {
   fontMode:     'random',
   activeTab:    'css',
   history:      [],
+  favorites:    [],
   hasGenerated: false,
   previewDark:  false,
   // Color picker
   picker: { isOpen: false, role: null },
 };
+
+const MAX_FAVORITES = 10;
+
+function saveFavoritesToStorage() {
+  localStorage.setItem('ag-favorites', JSON.stringify(state.favorites));
+}
+
+function loadFavoritesFromStorage() {
+  try {
+    const saved = localStorage.getItem('ag-favorites');
+    if (saved) state.favorites = JSON.parse(saved);
+  } catch (e) { state.favorites = []; }
+}
 
 /* ──────────────────────────────────────────────────────────────
    COLOR UTILITIES
@@ -648,6 +662,27 @@ function buildFullPageHTML() {
     body.dark .icon-sun  { display: block; }
     body.dark .icon-moon { display: none; }
 
+    /* FAV TOGGLE */
+    .fav-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--border-faint);
+      cursor: pointer;
+      color: inherit;
+      transition: border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .fav-toggle:hover { border-color: var(--border-hover); }
+    .fav-heart-filled { display: none; }
+    .fav-toggle.active .fav-heart-outline { display: none; }
+    .fav-toggle.active .fav-heart-filled  { display: block; color: #e0334c; }
+    .fav-toggle.active { border-color: #e0334c; }
+
     /* BUTTONS */
     .btn {
       display: inline-block;
@@ -901,6 +936,10 @@ function buildFullPageHTML() {
         <li><a href="#">Docs</a></li>
         <li><a href="#">Blog</a></li>
       </ul>
+      <button class="fav-toggle" id="favBtn" aria-label="Save as favorite">
+        <svg class="fav-heart-outline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <svg class="fav-heart-filled" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
       <button class="dark-toggle" id="darkToggle" aria-label="Toggle dark mode">
         <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
@@ -1004,13 +1043,21 @@ function buildFullPageHTML() {
     document.getElementById('hamburger').addEventListener('click', () => {
       document.getElementById('mainNav').classList.toggle('nav-open');
     });
+    document.getElementById('favBtn').addEventListener('click', () => {
+      if (window.opener) window.opener.postMessage({ type: 'FORMA_TOGGLE_FAVORITE' }, '*');
+    });
     window.addEventListener('message', (e) => {
-      if (!e.data || e.data.type !== 'FORMA_UPDATE') return;
-      const root = document.documentElement;
-      Object.entries(e.data.vars).forEach(([k, v]) => root.style.setProperty(k, v));
-      if (e.data.googleFontsUrl) {
-        const link = document.getElementById('dynamic-fonts');
-        if (link) link.href = e.data.googleFontsUrl;
+      if (!e.data) return;
+      if (e.data.type === 'FORMA_UPDATE') {
+        const root = document.documentElement;
+        Object.entries(e.data.vars).forEach(([k, v]) => root.style.setProperty(k, v));
+        if (e.data.googleFontsUrl) {
+          const link = document.getElementById('dynamic-fonts');
+          if (link) link.href = e.data.googleFontsUrl;
+        }
+      }
+      if (e.data.type === 'FORMA_FAVORITE_STATE') {
+        document.getElementById('favBtn').classList.toggle('active', e.data.active);
       }
     });
   </script>
@@ -1169,6 +1216,8 @@ function renderAll() {
   renderPreview();
   renderExport();
   pushPreviewUpdate();
+  updateHeartIcons();
+  renderFavorites();
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -1300,6 +1349,138 @@ function harmonizeFromPickedColor() {
   syncPickerToState(role);
   renderAll();
   pushHistory();
+}
+
+/* ──────────────────────────────────────────────────────────────
+   FAVORITES
+────────────────────────────────────────────────────────────── */
+
+function getAestheticFingerprint(palette, fonts) {
+  return COLOR_ROLES.map(r => palette[r].hex).join('') +
+    (fonts.heading || '') + (fonts.body || '');
+}
+
+function isCurrentFavorite() {
+  if (!state.hasGenerated) return false;
+  const fp = getAestheticFingerprint(state.palette, state.fonts);
+  return state.favorites.some(f => getAestheticFingerprint(f.palette, f.fonts) === fp);
+}
+
+function updateHeartIcons() {
+  const active     = isCurrentFavorite();
+  const atCapacity = state.favorites.length >= MAX_FAVORITES && !active;
+  const btn = document.getElementById('favoriteBtn');
+  if (btn) {
+    btn.setAttribute('aria-pressed', String(active));
+    btn.classList.toggle('active', active);
+    btn.disabled = !state.hasGenerated || atCapacity;
+    btn.title = atCapacity ? 'Remove a favorite to save more (limit: 10)' : '';
+  }
+  if (previewWindow && !previewWindow.closed) {
+    previewWindow.postMessage({ type: 'FORMA_FAVORITE_STATE', active }, '*');
+  }
+}
+
+function toggleFavorite() {
+  if (!state.hasGenerated) return;
+  const fp = getAestheticFingerprint(state.palette, state.fonts);
+  const existingIdx = state.favorites.findIndex(f =>
+    getAestheticFingerprint(f.palette, f.fonts) === fp
+  );
+  if (existingIdx !== -1) {
+    state.favorites.splice(existingIdx, 1);
+  } else {
+    if (state.favorites.length >= MAX_FAVORITES) return;
+    state.favorites.unshift({
+      palette: JSON.parse(JSON.stringify(state.palette)),
+      fonts:   JSON.parse(JSON.stringify(state.fonts)),
+      harmony: state.harmony,
+      id:      Date.now(),
+    });
+  }
+  saveFavoritesToStorage();
+  renderFavorites();
+  updateHeartIcons();
+}
+
+function removeFavorite(id) {
+  state.favorites = state.favorites.filter(f => f.id !== id);
+  saveFavoritesToStorage();
+  renderFavorites();
+  updateHeartIcons();
+}
+
+function clearFavorites() {
+  state.favorites = [];
+  saveFavoritesToStorage();
+  renderFavorites();
+  updateHeartIcons();
+}
+
+function renderFavorites() {
+  const grid     = document.getElementById('favoritesGrid');
+  const countEl  = document.getElementById('favoritesCount');
+  const clearBtn = document.getElementById('favoritesClearBtn');
+  const emptyEl  = document.getElementById('favoritesEmpty');
+
+  countEl.textContent = `${state.favorites.length} / 10`;
+  if (clearBtn) clearBtn.disabled = state.favorites.length === 0;
+
+  if (state.favorites.length === 0) {
+    grid.innerHTML = '';
+    if (emptyEl) grid.appendChild(emptyEl);
+    if (emptyEl) emptyEl.hidden = false;
+    return;
+  }
+  if (emptyEl) emptyEl.hidden = true;
+  grid.innerHTML = '';
+
+  const currentFp = state.hasGenerated
+    ? getAestheticFingerprint(state.palette, state.fonts) : null;
+
+  state.favorites.forEach(snap => {
+    const isActive = currentFp &&
+      getAestheticFingerprint(snap.palette, snap.fonts) === currentFp;
+
+    const card = document.createElement('div');
+    card.className = 'history-card' + (isActive ? ' active' : '');
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', `Restore ${snap.harmony} palette`);
+
+    const palette = document.createElement('div');
+    palette.className = 'history-palette';
+    COLOR_ROLES.forEach(role => {
+      const s = document.createElement('div');
+      s.className = 'history-swatch';
+      s.style.background = snap.palette[role].hex;
+      palette.appendChild(s);
+    });
+
+    const info = document.createElement('div');
+    info.className = 'history-info';
+    info.innerHTML = `
+      <div class="history-fonts">${snap.fonts.heading || '—'} / ${snap.fonts.body || '—'}</div>
+      <div class="history-harmony">${capitalize(snap.harmony)}</div>`;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'fav-remove-btn';
+    removeBtn.setAttribute('aria-label', 'Remove favorite');
+    removeBtn.innerHTML = '&times;';
+    removeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      removeFavorite(snap.id);
+    });
+
+    card.appendChild(palette);
+    card.appendChild(removeBtn);
+    card.appendChild(info);
+    card.addEventListener('click', () => restoreSnapshot(snap));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); restoreSnapshot(snap); }
+    });
+    grid.appendChild(card);
+  });
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -1466,6 +1647,8 @@ function initEvents() {
   // Copy export
   document.getElementById('copyBtn').addEventListener('click', copyExport);
   document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+  document.getElementById('favoriteBtn').addEventListener('click', toggleFavorite);
+  document.getElementById('favoritesClearBtn').addEventListener('click', clearFavorites);
   document.getElementById('previewDarkToggle').addEventListener('click', togglePreviewDark);
   document.getElementById('previewBtnGhost').addEventListener('click', openFullPagePreview);
 
@@ -1531,6 +1714,11 @@ function initEvents() {
       generate();
     }
   });
+
+  // Messages from full-page preview window
+  window.addEventListener('message', e => {
+    if (e.data?.type === 'FORMA_TOGGLE_FAVORITE') toggleFavorite();
+  });
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -1539,6 +1727,8 @@ function initEvents() {
 
 function init() {
   initDarkMode();
+  loadFavoritesFromStorage();
+  renderFavorites();
   initEvents();
   generate(); // auto-generate on first load
 }
