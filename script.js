@@ -872,7 +872,7 @@ function buildFullPageHTML() {
         left: 0; right: 0;
         flex-direction: column;
         gap: 0;
-        background: var(--bg);
+        background: var(--nav-bg);
         border-bottom: 1px solid var(--border-subtle);
         padding: 0.5rem 0;
         z-index: 99;
@@ -920,7 +920,7 @@ function buildFullPageHTML() {
 
   <section class="hero">
     <div class="hero-badge">Now in Beta</div>
-    <h1><span style="display:block">Ship beautiful products,</span><span style="display:block">faster.</span></h1>
+    <h1><span style="display:block">Ship beautiful</span><span style="display:block">products,</span><span style="display:block">faster.</span></h1>
     <p>Forma gives your team a unified design language — from tokens to components — so you build with confidence every time.</p>
     <div class="hero-actions">
       <a href="#" class="btn btn-primary">Start for Free</a>
@@ -1493,12 +1493,13 @@ function initEvents() {
   // Color picker: backdrop click
   document.getElementById('pickerBackdrop').addEventListener('click', closeColorPicker);
 
-  // Color picker: native color input
+  // Color picker: native color input (fallback)
   document.getElementById('pickerNativeInput').addEventListener('input', e => {
     const role = state.picker.role;
     if (!role) return;
     applyPickerColor(role, e.target.value);
   });
+
 
   // Color picker: hue slider
   document.getElementById('pickerHue').addEventListener('input', () => {
