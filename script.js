@@ -676,6 +676,7 @@ function buildFullPageHTML() {
       color: inherit;
       transition: border-color 0.2s;
       flex-shrink: 0;
+      margin-left: 4px;
     }
     .fav-toggle:hover { border-color: var(--border-hover); }
     .fav-heart-filled { display: none; }
