@@ -493,6 +493,589 @@ function togglePreviewDark() {
 }
 
 /* ──────────────────────────────────────────────────────────────
+   FULL PAGE PREVIEW
+────────────────────────────────────────────────────────────── */
+
+let previewWindow = null;
+
+function buildFullPageHTML() {
+  const p           = state.palette;
+  const headingFont = state.fonts.heading || 'Georgia';
+  const bodyFont    = state.fonts.body    || 'system-ui';
+  const pair        = state.fonts.pair;
+  const googleFontsUrl = pair ? buildGoogleFontsUrl(pair) : '';
+
+  // Derive dark-mode equivalents from background hue
+  const bgHsl    = hexToHsl(p.background.hex);
+  const darkBg   = hslToHex(bgHsl.h, Math.round(bgHsl.s * 0.4), 11);
+  const darkText = hslToHex(bgHsl.h, 15, 88);
+
+  // Contrast-safe text on each chromatic color
+  const onPrimary   = getContrastColor(p.primary.hex);
+  const onSecondary = getContrastColor(p.secondary.hex);
+  const onAccent    = getContrastColor(p.accent.hex);
+
+  const fontsLinkTag = `<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link id="dynamic-fonts" rel="stylesheet" href="${googleFontsUrl.replace('display=swap', 'display=block')}">`;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forma — Ship beautiful products, faster.</title>
+  ${fontsLinkTag}
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        ${p.background.hex};
+      --text:      ${p.text.hex};
+      --primary:   ${p.primary.hex};
+      --secondary: ${p.secondary.hex};
+      --accent:    ${p.accent.hex};
+      --on-primary:   ${onPrimary};
+      --on-secondary: ${onSecondary};
+      --on-accent:    ${onAccent};
+      --heading-font: '${headingFont}', Georgia, serif;
+      --body-font:    '${bodyFont}', system-ui, sans-serif;
+      --dark-bg:   ${darkBg};
+      --dark-text: ${darkText};
+      --border-subtle:      ${hexWithAlpha(p.text.hex, 0.08)};
+      --border-faint:       ${hexWithAlpha(p.text.hex, 0.2)};
+      --border-hover:       ${hexWithAlpha(p.text.hex, 0.5)};
+      --shadow-soft:        ${hexWithAlpha(p.text.hex, 0.07)};
+      --shadow-medium:      ${hexWithAlpha(p.text.hex, 0.12)};
+      --accent-tint-light:  ${hexWithAlpha(p.accent.hex, 0.15)};
+      --accent-tint-border: ${hexWithAlpha(p.accent.hex, 0.3)};
+      --secondary-subtle:   ${hexWithAlpha(p.secondary.hex, 0.05)};
+      --secondary-mid:      ${hexWithAlpha(p.secondary.hex, 0.09)};
+      --secondary-dark-bg:  ${hexWithAlpha(p.secondary.hex, 0.1)};
+      --secondary-card:     ${hexWithAlpha(p.secondary.hex, 0.12)};
+      --secondary-quote:    ${hexWithAlpha(p.secondary.hex, 0.16)};
+      --footer-dark-bg:     ${darkText};
+      --footer-dark-text:   ${darkBg};
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body-font);
+      line-height: 1.6;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: var(--dark-bg);
+      color: var(--dark-text);
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      padding: 1.25rem 5%;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      background: inherit;
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      gap: 1rem;
+    }
+    .nav-logo {
+      font-family: var(--heading-font);
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--secondary);
+      letter-spacing: -0.03em;
+      flex-shrink: 0;
+    }
+    .nav-spacer { flex: 1; }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: inherit;
+      text-decoration: none;
+      font-size: 0.9rem;
+      opacity: 0.75;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+    .hamburger {
+      display: none;
+      background: none;
+      border: 1px solid var(--border-faint);
+      border-radius: 6px;
+      padding: 0.4rem;
+      cursor: pointer;
+      color: inherit;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* DARK TOGGLE — circular, matching main site */
+    .dark-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid var(--border-faint);
+      cursor: pointer;
+      color: inherit;
+      transition: border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-toggle:hover { border-color: var(--border-hover); }
+    .icon-sun  { display: none; }
+    .icon-moon { display: block; }
+    body.dark .icon-sun  { display: block; }
+    body.dark .icon-moon { display: none; }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1.25rem;
+      border-radius: 6px;
+      font-family: var(--body-font);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--secondary);
+      border: 1.5px solid var(--secondary);
+    }
+    .btn-accent {
+      background: var(--accent);
+      color: var(--on-accent);
+    }
+
+    /* HERO */
+    .hero {
+      padding: 6rem 5% 5rem;
+      text-align: center;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--accent-tint-light);
+      color: var(--accent);
+      border: 1px solid var(--accent-tint-border);
+      border-radius: 99px;
+      padding: 0.25rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-family: var(--heading-font);
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+      color: inherit;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      opacity: 0.7;
+      max-width: 560px;
+      margin: 0 auto 2.25rem;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      width: fit-content;
+      margin: 0 auto;
+    }
+    .hero-actions .btn { padding: 0.75rem 1.75rem; font-size: 1rem; }
+
+    /* FEATURES */
+    .features {
+      padding: 5rem 5%;
+      background: var(--secondary-subtle);
+    }
+    body.dark .features { background: var(--secondary-dark-bg); }
+    .features-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .features-header h2 {
+      font-family: var(--heading-font);
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.6rem;
+    }
+    .features-header p { opacity: 0.65; max-width: 480px; margin: 0 auto; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      background: var(--bg);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px var(--shadow-soft);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    body.dark .feature-card { background: var(--secondary-card); }
+    .feature-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px var(--shadow-medium);
+    }
+    .feature-card-bar {
+      height: 4px;
+      background: var(--secondary);
+    }
+    .feature-card-body { padding: 1.75rem; }
+    .feature-icon {
+      width: 42px; height: 42px;
+      background: var(--accent-tint-light);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+    .feature-card h3 {
+      font-family: var(--heading-font);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .feature-card p { font-size: 0.9rem; opacity: 0.65; line-height: 1.6; }
+
+    /* TESTIMONIAL */
+    .testimonial {
+      padding: 5rem 5%;
+      text-align: center;
+    }
+    .testimonial-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--secondary-mid);
+      border-left: 4px solid var(--secondary);
+      border-radius: 0 12px 12px 0;
+      padding: 3rem;
+      text-align: left;
+    }
+    body.dark .testimonial-inner { background: var(--secondary-quote); }
+    .testimonial blockquote {
+      font-family: var(--heading-font);
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+      font-style: italic;
+      font-weight: 400;
+      line-height: 1.45;
+      margin-bottom: 1.5rem;
+      color: inherit;
+    }
+    .testimonial cite {
+      font-style: normal;
+      font-size: 0.9rem;
+      opacity: 0.6;
+      font-weight: 600;
+    }
+    .testimonial-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    /* CTA BANNER */
+    .cta-banner {
+      padding: 5rem 5%;
+      background: var(--accent);
+      color: var(--on-accent);
+      text-align: center;
+    }
+    .cta-banner h2 {
+      font-family: var(--heading-font);
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+    .cta-banner p { opacity: 0.8; margin-bottom: 2rem; font-size: 1.05rem; }
+    .cta-banner .btn-primary { font-size: 1rem; padding: 0.85rem 2rem; }
+
+    /* FOOTER */
+    footer {
+      background: var(--text);
+      color: var(--bg);
+      padding: 3rem 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    body.dark footer { background: var(--footer-dark-bg); color: var(--footer-dark-text); }
+    .footer-logo {
+      font-family: var(--heading-font);
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      opacity: 0.9;
+    }
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+      font-size: 0.85rem;
+    }
+    .footer-links a { color: inherit; text-decoration: none; opacity: 0.55; }
+    .footer-links a:hover { opacity: 0.9; }
+    .footer-copy { font-size: 0.8rem; opacity: 0.4; }
+
+    /* MOBILE NAV */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0; right: 0;
+        flex-direction: column;
+        gap: 0;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border-subtle);
+        padding: 0.5rem 0;
+        z-index: 99;
+      }
+      body.dark .nav-links { background: var(--dark-bg); }
+      nav.nav-open .nav-links { display: flex; }
+      .nav-links li a {
+        display: block;
+        padding: 0.75rem 5%;
+        font-size: 1rem;
+      }
+      .hamburger { display: flex; }
+      .nav-right .btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav id="mainNav">
+    <span class="nav-logo">Forma</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-right">
+      <ul class="nav-links">
+        <li><a href="#">Product</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Docs</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+      <button class="dark-toggle" id="darkToggle" aria-label="Toggle dark mode">
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <a href="#" class="btn btn-primary">Get Started Free</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-badge">Now in Beta</div>
+    <h1><span style="display:block">Ship beautiful products,</span><span style="display:block">faster.</span></h1>
+    <p>Forma gives your team a unified design language — from tokens to components — so you build with confidence every time.</p>
+    <div class="hero-actions">
+      <a href="#" class="btn btn-primary">Start for Free</a>
+      <a href="#" class="btn btn-ghost">See How It Works</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="features-header">
+      <h2>Everything your team needs</h2>
+      <p>A complete design system toolkit that scales from startup to enterprise.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M10.4 21.4A8 8 0 0 1 3.6 10.4"/><path d="M13.6 2.6A8 8 0 0 1 20.4 13.6"/>
+            </svg>
+          </div>
+          <h3>Design Tokens</h3>
+          <p>Define your colors, spacing, and typography once. Sync them automatically across every platform and framework.</p>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>
+            </svg>
+          </div>
+          <h3>Component Library</h3>
+          <p>A battle-tested set of accessible, composable components that work out of the box — no configuration needed.</p>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-body">
+          <div class="feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/>
+            </svg>
+          </div>
+          <h3>Live Collaboration</h3>
+          <p>Design and engineering share one source of truth. Changes propagate instantly so your team is always in sync.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonial">
+    <div class="testimonial-inner">
+      <blockquote>"Forma cut our design-to-production cycle in half. Our engineers and designers finally speak the same language."</blockquote>
+      <cite><span class="testimonial-dot"></span>Maya Okonkwo — Head of Product, Arclight</cite>
+    </div>
+  </section>
+
+  <section class="cta-banner">
+    <h2>Ready to build something beautiful?</h2>
+    <p>Join thousands of teams who ship with confidence using Forma.</p>
+    <a href="#" class="btn btn-primary">Get Started Free</a>
+  </section>
+
+  <footer>
+    <span class="footer-logo">Forma</span>
+    <ul class="footer-links">
+      <li><a href="#">Privacy</a></li>
+      <li><a href="#">Terms</a></li>
+      <li><a href="#">Status</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+    <span class="footer-copy">© 2025 Forma, Inc.</span>
+  </footer>
+
+  <script>
+    document.getElementById('darkToggle').addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+    });
+    document.getElementById('hamburger').addEventListener('click', () => {
+      document.getElementById('mainNav').classList.toggle('nav-open');
+    });
+    window.addEventListener('message', (e) => {
+      if (!e.data || e.data.type !== 'FORMA_UPDATE') return;
+      const root = document.documentElement;
+      Object.entries(e.data.vars).forEach(([k, v]) => root.style.setProperty(k, v));
+      if (e.data.googleFontsUrl) {
+        const link = document.getElementById('dynamic-fonts');
+        if (link) link.href = e.data.googleFontsUrl;
+      }
+    });
+  </script>
+
+</body>
+</html>`;
+}
+
+function openFullPagePreview() {
+  if (!state.hasGenerated) return;
+  if (previewWindow && !previewWindow.closed) {
+    previewWindow.focus();
+    pushPreviewUpdate();
+    return;
+  }
+  const html = buildFullPageHTML();
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  previewWindow = window.open(
+    url,
+    'forma-preview',
+    'width=1280,height=900,menubar=no,toolbar=no,location=no,scrollbars=yes,resizable=yes'
+  );
+  if (previewWindow) setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+function pushPreviewUpdate() {
+  if (!previewWindow || previewWindow.closed) return;
+  const p           = state.palette;
+  const headingFont = state.fonts.heading || 'Georgia';
+  const bodyFont    = state.fonts.body    || 'system-ui';
+  const pair        = state.fonts.pair;
+  const bgHsl    = hexToHsl(p.background.hex);
+  const darkBg   = hslToHex(bgHsl.h, Math.round(bgHsl.s * 0.4), 11);
+  const darkText = hslToHex(bgHsl.h, 15, 88);
+  previewWindow.postMessage({
+    type: 'FORMA_UPDATE',
+    vars: {
+      '--bg':              p.background.hex,
+      '--text':            p.text.hex,
+      '--primary':         p.primary.hex,
+      '--secondary':       p.secondary.hex,
+      '--accent':          p.accent.hex,
+      '--on-primary':      getContrastColor(p.primary.hex),
+      '--on-secondary':    getContrastColor(p.secondary.hex),
+      '--on-accent':       getContrastColor(p.accent.hex),
+      '--dark-bg':         darkBg,
+      '--dark-text':       darkText,
+      '--heading-font':    `'${headingFont}', Georgia, serif`,
+      '--body-font':       `'${bodyFont}', system-ui, sans-serif`,
+      '--border-subtle':   hexWithAlpha(p.text.hex, 0.08),
+      '--border-faint':    hexWithAlpha(p.text.hex, 0.2),
+      '--border-hover':    hexWithAlpha(p.text.hex, 0.5),
+      '--shadow-soft':     hexWithAlpha(p.text.hex, 0.07),
+      '--shadow-medium':   hexWithAlpha(p.text.hex, 0.12),
+      '--accent-tint-light':  hexWithAlpha(p.accent.hex, 0.15),
+      '--accent-tint-border': hexWithAlpha(p.accent.hex, 0.3),
+      '--secondary-subtle':   hexWithAlpha(p.secondary.hex, 0.05),
+      '--secondary-mid':      hexWithAlpha(p.secondary.hex, 0.09),
+      '--secondary-dark-bg':  hexWithAlpha(p.secondary.hex, 0.1),
+      '--secondary-card':     hexWithAlpha(p.secondary.hex, 0.12),
+      '--secondary-quote':    hexWithAlpha(p.secondary.hex, 0.16),
+      '--footer-dark-bg':     darkText,
+      '--footer-dark-text':   darkBg,
+    },
+    googleFontsUrl: pair ? buildGoogleFontsUrl(pair) : '',
+  }, '*');
+}
+
+/* ──────────────────────────────────────────────────────────────
    RENDER: EXPORT
 ────────────────────────────────────────────────────────────── */
 
@@ -577,6 +1160,7 @@ function renderAll() {
   renderAccessibility();
   renderPreview();
   renderExport();
+  pushPreviewUpdate();
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -875,6 +1459,7 @@ function initEvents() {
   document.getElementById('copyBtn').addEventListener('click', copyExport);
   document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
   document.getElementById('previewDarkToggle').addEventListener('click', togglePreviewDark);
+  document.getElementById('previewBtnGhost').addEventListener('click', openFullPagePreview);
 
   // Harmony mode chips
   document.getElementById('harmonyChips').addEventListener('click', e => {
